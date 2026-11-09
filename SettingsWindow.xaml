@@ -126,6 +126,16 @@
                             </StackPanel>
                         </Border>
 
+                        <!-- Card customization -->
+                        <TextBlock Text="ISLAND CARDS" Foreground="#8E8E93" FontSize="10" FontWeight="Bold" Margin="4,0,0,6"/>
+                        <Border Background="#16161E" BorderBrush="#252532" BorderThickness="1" CornerRadius="14" Padding="16,12" Margin="0,0,0,14">
+                            <StackPanel>
+                                <TextBlock Text="Visible Cards" Foreground="White" FontSize="12.5" FontWeight="SemiBold"/>
+                                <TextBlock Text="Choose which available cards appear in your island. More cards will become available as features are developed." Foreground="#8E8E93" FontSize="10.5" TextWrapping="Wrap" Margin="0,3,0,10"/>
+                                <StackPanel x:Name="CardSettingsPanel"/>
+                            </StackPanel>
+                        </Border>
+
                         <!-- Group 3: General & Clipboard -->
                         <TextBlock Text="SYSTEM &amp; STORAGE" Foreground="#8E8E93" FontSize="10" FontWeight="Bold" Margin="4,0,0,6"/>
                         <Border Background="#16161E" BorderBrush="#252532" BorderThickness="1" CornerRadius="14" Padding="16,12">

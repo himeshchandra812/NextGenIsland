@@ -2,6 +2,8 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using NextGenIsland.Services;
+using NextGenIsland.Core;
+using NextGenIsland.Models;
 
 namespace NextGenIsland;
 
@@ -29,8 +31,35 @@ public partial class SettingsWindow : Window
 
         // Populate interfaces
         PopulateInterfaces(s.SelectedNetworkInterface);
+        PopulateCardSettings(s);
     }
 
+    private void PopulateCardSettings(AppSettings settings)
+    {
+        settings.DisabledCardIds ??= new List<string>();
+
+        CardSettingsPanel.Children.Clear();
+
+        foreach (var card in IslandCardCatalog.All.OrderBy(c => c.DefaultOrder))
+        {
+            bool isPlanned = card.Status == IslandCardStatus.Planned;
+            bool isDisabled = settings.DisabledCardIds.Contains(
+                card.Id, StringComparer.OrdinalIgnoreCase);
+
+            var checkBox = new CheckBox
+            {
+                Content = isPlanned ? $"{card.Title}  (Coming soon)" : card.Title,
+                IsChecked = !isDisabled && card.EnabledByDefault,
+                IsEnabled = !isPlanned,
+                Tag = card.Id,
+                ToolTip = card.Description,
+                Margin = new Thickness(0, 5, 0, 5),
+                FontSize = 11.5
+            };
+
+            CardSettingsPanel.Children.Add(checkBox);
+        }
+    }
     private void SelectDuration(int seconds)
     {
         int index = 1; // default 5s
@@ -100,17 +129,26 @@ public partial class SettingsWindow : Window
 
     private void Save_Click(object sender, RoutedEventArgs e)
     {
-        SettingsStore.Save(new AppSettings
-        {
-            ClipboardPaused = PauseClipboard.IsChecked == true,
-            StartWithWindows = StartWithWindows.IsChecked == true,
-            NotificationsEnabled = EnableNotifications.IsChecked == true,
-            QuietMode = QuietModeToggle.IsChecked == true,
-            NotificationDurationSeconds = GetSelectedDuration(),
-            BatteryWarningsEnabled = BatteryWarnings.IsChecked == true,
-            NetworkMonitoringEnabled = NetworkMonitoring.IsChecked == true,
-            SelectedNetworkInterface = GetSelectedInterface()
-        });
+        var settings = SettingsStore.Load();
+
+        settings.ClipboardPaused = PauseClipboard.IsChecked == true;
+        settings.StartWithWindows = StartWithWindows.IsChecked == true;
+        settings.NotificationsEnabled = EnableNotifications.IsChecked == true;
+        settings.QuietMode = QuietModeToggle.IsChecked == true;
+        settings.NotificationDurationSeconds = GetSelectedDuration();
+        settings.BatteryWarningsEnabled = BatteryWarnings.IsChecked == true;
+        settings.NetworkMonitoringEnabled = NetworkMonitoring.IsChecked == true;
+        settings.SelectedNetworkInterface = GetSelectedInterface();
+
+        settings.DisabledCardIds = CardSettingsPanel.Children
+            .OfType<CheckBox>()
+            .Where(checkBox => checkBox.IsEnabled && checkBox.IsChecked != true)
+            .Select(checkBox => checkBox.Tag?.ToString())
+            .Where(id => !string.IsNullOrWhiteSpace(id))
+            .Select(id => id!)
+            .ToList();
+
+        SettingsStore.Save(settings);
         Close();
     }
 }

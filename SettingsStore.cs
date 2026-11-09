@@ -17,6 +17,7 @@ public sealed class AppSettings
     public bool BatteryWarningsEnabled { get; set; } = true;
     public bool NetworkMonitoringEnabled { get; set; } = true;
     public string SelectedNetworkInterface { get; set; } = "";
+    public List<string> DisabledCardIds { get; set; } = new();
 }
 
 public static class SettingsStore
