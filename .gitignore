@@ -1,1 +1,9 @@
-.vs/\n.vscode/\n**/bin/\n**/obj/\n*.user\n*.suo\n*.db\n*.db-shm\n*.db-wal\n
+.vs/
+.vscode/
+bin/
+obj/
+*.user
+*.suo
+*.db
+*.db-shm
+*.db-wal

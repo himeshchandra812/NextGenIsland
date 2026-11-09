@@ -12,7 +12,10 @@ public sealed record MediaState(
     string Artist,
     string AppName,
     bool IsPlaying,
-    BitmapImage? Thumbnail
+    BitmapImage? Thumbnail,
+    TimeSpan Position = default,
+    TimeSpan Duration = default,
+    bool CanSeek = false
 );
 
 public sealed class MediaControllerService : IDisposable
@@ -20,6 +23,8 @@ public sealed class MediaControllerService : IDisposable
     private GlobalSystemMediaTransportControlsSessionManager? _manager;
     private GlobalSystemMediaTransportControlsSession? _currentSession;
     private bool _disposed;
+    private BitmapImage? _thumbCache;
+    private string? _thumbKey;
 
     public event Action<MediaState>? MediaStateChanged;
 
@@ -103,8 +108,10 @@ public sealed class MediaControllerService : IDisposable
             var appName = CleanAppName(session.SourceAppUserModelId);
             var isPlaying = playback?.PlaybackStatus == GlobalSystemMediaTransportControlsSessionPlaybackStatus.Playing;
 
-            BitmapImage? thumbnail = null;
-            if (props?.Thumbnail != null)
+            // Reuse the decoded artwork while the same track is playing (this method runs every second).
+            var thumbKey = $"{appName}|{props?.Title}|{props?.Artist}|{props?.AlbumTitle}";
+            BitmapImage? thumbnail = (_thumbCache != null && thumbKey == _thumbKey) ? _thumbCache : null;
+            if (thumbnail == null && props?.Thumbnail != null)
             {
                 try
                 {
@@ -121,11 +128,44 @@ public sealed class MediaControllerService : IDisposable
                     bmp.EndInit();
                     bmp.Freeze();
                     thumbnail = bmp;
+                    _thumbCache = bmp;
+                    _thumbKey = thumbKey;
                 }
                 catch (Exception ex)
                 {
                     Debug.WriteLine("Thumbnail decode error: " + ex);
                 }
+            }
+
+            // Timeline (position / duration / seekable)
+            TimeSpan position = TimeSpan.Zero, duration = TimeSpan.Zero;
+            bool canSeek = false;
+            try
+            {
+                var timeline = session.GetTimelineProperties();
+                if (timeline != null)
+                {
+                    duration = timeline.EndTime - timeline.StartTime;
+                    position = timeline.Position - timeline.StartTime;
+
+                    if (isPlaying)
+                    {
+                        var sinceUpdate = DateTimeOffset.UtcNow - timeline.LastUpdatedTime;
+                        if (sinceUpdate > TimeSpan.Zero && sinceUpdate < TimeSpan.FromHours(12))
+                        {
+                            double rate = playback?.PlaybackRate ?? 1.0;
+                            position += TimeSpan.FromTicks((long)(sinceUpdate.Ticks * rate));
+                        }
+                    }
+
+                    if (position < TimeSpan.Zero) position = TimeSpan.Zero;
+                    if (duration > TimeSpan.Zero && position > duration) position = duration;
+                }
+                canSeek = playback?.Controls?.IsPlaybackPositionEnabled == true;
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine("Timeline read error: " + ex.Message);
             }
 
             bool hasValidMedia = !string.IsNullOrWhiteSpace(props?.Title) || isPlaying;
@@ -135,7 +175,10 @@ public sealed class MediaControllerService : IDisposable
                 hasValidMedia ? artist : "No active media session",
                 appName,
                 isPlaying,
-                thumbnail
+                thumbnail,
+                position,
+                duration,
+                canSeek
             );
 
             MediaStateChanged?.Invoke(state);
@@ -233,6 +276,27 @@ public sealed class MediaControllerService : IDisposable
         catch (Exception ex)
         {
             Debug.WriteLine("SkipPrevious error: " + ex);
+        }
+        return false;
+    }
+
+    public async Task<bool> SeekAsync(TimeSpan position)
+    {
+        try
+        {
+            var session = _currentSession ?? _manager?.GetCurrentSession();
+            if (session != null)
+            {
+                var start = session.GetTimelineProperties()?.StartTime ?? TimeSpan.Zero;
+                var success = await session.TryChangePlaybackPositionAsync((start + position).Ticks);
+                await Task.Delay(200);
+                await RefreshMediaStateAsync();
+                return success;
+            }
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine("Seek error: " + ex);
         }
         return false;
     }

@@ -17,7 +17,7 @@ public partial class MainWindow : Window
 
     // Island sizes (the window is island height + ShadowPad so the shadow is not clipped).
     private const double CompactWidth = 330, BannerWidth = 410, ExpandedWidth = 620;
-    private const double CompactHeight = 44, BannerHeight = 66, ExpandedHeight = 192;
+    private const double CompactHeight = 44, BannerHeight = 66, ExpandedHeight = 206;
     private const double ShadowPad = 14;
     private const double NavSlot = 44;
 
@@ -45,6 +45,11 @@ public partial class MainWindow : Window
     private string _metricsSummary = "CPU --% \u2022 RAM --%";
     private string? _mediaLabel;
     private string _paletteKey = "none";
+
+    // Media progress / seeking
+    private TimeSpan _duration, _position;
+    private bool _canSeek, _dragging;
+    private DateTime _seekHoldUntil = DateTime.MinValue;
 
     public MainWindow()
     {
@@ -386,6 +391,7 @@ public partial class MainWindow : Window
 
             UpdateCompactText();
             UpdatePalette(state);
+            UpdateProgress(state);
         });
     }
 
@@ -410,6 +416,7 @@ public partial class MainWindow : Window
         AnimateBrush(IslandBorderBrush, p.Border);
         AnimateBrush(NavIndicatorBrush, p.NavIndicator);
         AnimateBrush(PlayBrush, p.Accent);
+        AnimateBrush(ProgressBrush, p.Accent);
         MediaPlayPauseButton.Foreground = new SolidColorBrush(p.OnAccent);
     }
 
@@ -425,6 +432,99 @@ public partial class MainWindow : Window
 
     private static void AnimateBrush(SolidColorBrush brush, Color to)
         => brush.BeginAnimation(SolidColorBrush.ColorProperty, MakeColorAnimation(to));
+
+    // ---------------------------------------------------------------- progress / seeking
+
+    private void UpdateProgress(NextGenIsland.Services.MediaState state)
+    {
+        _duration = state.HasMedia ? state.Duration : TimeSpan.Zero;
+        _canSeek = state.HasMedia && state.CanSeek && _duration > TimeSpan.Zero;
+        ProgressHit.Cursor = _canSeek ? Cursors.Hand : Cursors.Arrow;
+
+        // Ignore updates while the user is dragging, or just after a seek (the player may still report the old time).
+        if (_dragging || DateTime.UtcNow < _seekHoldUntil) return;
+
+        _position = state.HasMedia ? state.Position : TimeSpan.Zero;
+        ShowProgress(_position, animate: true);
+    }
+
+    private void ShowProgress(TimeSpan position, bool animate)
+    {
+        bool hasDuration = _duration > TimeSpan.Zero;
+        if (position < TimeSpan.Zero) position = TimeSpan.Zero;
+        if (hasDuration && position > _duration) position = _duration;
+
+        double ratio = hasDuration ? position.TotalSeconds / _duration.TotalSeconds : 0.0;
+        double target = Math.Max(0.0, ProgressHit.ActualWidth) * Math.Clamp(ratio, 0.0, 1.0);
+
+        if (animate)
+        {
+            ProgressFill.BeginAnimation(WidthProperty, new DoubleAnimation
+            {
+                To = target,
+                Duration = TimeSpan.FromMilliseconds(900)
+            });
+        }
+        else
+        {
+            ProgressFill.BeginAnimation(WidthProperty, null);
+            ProgressFill.Width = target;
+        }
+
+        ElapsedText.Text = FormatTime(position);
+        RemainingText.Text = hasDuration ? "-" + FormatTime(_duration - position) : "";
+    }
+
+    private static string FormatTime(TimeSpan t)
+    {
+        if (t < TimeSpan.Zero) t = TimeSpan.Zero;
+        return t.TotalHours >= 1
+            ? $"{(int)t.TotalHours}:{t.Minutes:00}:{t.Seconds:00}"
+            : $"{t.Minutes}:{t.Seconds:00}";
+    }
+
+    private TimeSpan PositionFromX(double x)
+    {
+        double w = ProgressHit.ActualWidth;
+        if (w <= 0.0 || _duration <= TimeSpan.Zero) return TimeSpan.Zero;
+        double r = Math.Clamp(x / w, 0.0, 1.0);
+        return TimeSpan.FromSeconds(_duration.TotalSeconds * r);
+    }
+
+    private void ProgressHit_SizeChanged(object sender, SizeChangedEventArgs e)
+        => ShowProgress(_position, animate: false);
+
+    private void ProgressHit_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+    {
+        if (!_canSeek) return;
+        _dragging = true;
+        ProgressHit.CaptureMouse();
+        ShowProgress(PositionFromX(e.GetPosition(ProgressHit).X), animate: false);
+        e.Handled = true;
+    }
+
+    private void ProgressHit_MouseMove(object sender, MouseEventArgs e)
+    {
+        if (_dragging)
+            ShowProgress(PositionFromX(e.GetPosition(ProgressHit).X), animate: false);
+    }
+
+    private async void ProgressHit_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+    {
+        if (!_dragging) return;
+
+        var target = PositionFromX(e.GetPosition(ProgressHit).X);
+        _dragging = false;
+        ProgressHit.ReleaseMouseCapture();
+
+        _position = target;
+        _seekHoldUntil = DateTime.UtcNow.AddMilliseconds(800);
+        ShowProgress(target, animate: false);
+
+        await _mediaService.SeekAsync(target);
+    }
+
+    private void ProgressHit_LostMouseCapture(object sender, MouseEventArgs e) => _dragging = false;
 
     private async void MediaPlayPause_Click(object sender, RoutedEventArgs e) => await _mediaService.TogglePlayPauseAsync();
     private async void MediaPrev_Click(object sender, RoutedEventArgs e) => await _mediaService.SkipPreviousAsync();

@@ -259,15 +259,20 @@
                     <Grid Grid.Row="1" Margin="22,2,22,16">
 
                         <!-- MEDIA -->
-                        <Grid x:Name="ViewMedia">
+                        <Grid x:Name="ViewMedia" VerticalAlignment="Center">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto"/>
                                 <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
 
-                            <Grid Width="104" Height="104" VerticalAlignment="Center" Margin="0,0,20,0">
+                            <Grid Grid.Row="0" Grid.Column="0" Width="92" Height="92" Margin="0,0,18,0">
                                 <Border x:Name="MediaDefaultArt" CornerRadius="18" Background="#1FFFFFFF">
-                                    <TextBlock Text="&#x266B;" FontSize="38" Foreground="#80FFFFFF"
+                                    <TextBlock Text="&#x266B;" FontSize="34" Foreground="#80FFFFFF"
                                                HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                 </Border>
                                 <Border x:Name="MediaArtBorder" CornerRadius="18" Visibility="Collapsed">
@@ -277,40 +282,55 @@
                                 </Border>
                             </Grid>
 
-                            <Grid Grid.Column="1" VerticalAlignment="Center">
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="Auto"/>
-                                </Grid.RowDefinitions>
-
-                                <StackPanel Orientation="Horizontal" Grid.Row="0" Margin="0,0,0,4">
+                            <StackPanel Grid.Row="0" Grid.Column="1" VerticalAlignment="Center" Margin="0,0,12,0">
+                                <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
                                     <TextBlock x:Name="MediaStatusBadge" Text="NO MEDIA" Foreground="#B3FFFFFF"
                                                FontSize="10" FontWeight="Bold"/>
                                     <TextBlock x:Name="MediaAppText" Text="" Foreground="#80FFFFFF" FontSize="10"
                                                FontWeight="SemiBold" Margin="6,0,0,0"/>
                                 </StackPanel>
-                                <TextBlock x:Name="MediaTitleText" Grid.Row="1" Text="No media playing"
+                                <TextBlock x:Name="MediaTitleText" Text="No media playing"
                                            Foreground="White" FontSize="20" FontWeight="SemiBold"
                                            TextTrimming="CharacterEllipsis"/>
-                                <TextBlock x:Name="MediaArtistText" Grid.Row="2" Text="Start playback in any app"
+                                <TextBlock x:Name="MediaArtistText" Text="Start playback in any app"
                                            Foreground="#B3FFFFFF" FontSize="13" TextTrimming="CharacterEllipsis"
                                            Margin="0,2,0,0"/>
+                            </StackPanel>
 
-                                <StackPanel Grid.Row="3" Orientation="Horizontal" Margin="0,12,0,0">
-                                    <Button x:Name="MediaPrevButton" Style="{StaticResource IconButton}"
-                                            Content="&#xE892;" FontSize="16" Width="38" Height="38" Click="MediaPrev_Click"/>
-                                    <Button x:Name="MediaPlayPauseButton" Style="{StaticResource PlayButton}"
-                                            Content="&#xE768;" Margin="8,0" Click="MediaPlayPause_Click">
-                                        <Button.Background>
-                                            <SolidColorBrush x:Name="PlayBrush" Color="#4C8DFF"/>
-                                        </Button.Background>
-                                    </Button>
-                                    <Button x:Name="MediaNextButton" Style="{StaticResource IconButton}"
-                                            Content="&#xE893;" FontSize="16" Width="38" Height="38" Click="MediaNext_Click"/>
-                                </StackPanel>
-                            </Grid>
+                            <StackPanel Grid.Row="0" Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                                <Button x:Name="MediaPrevButton" Style="{StaticResource IconButton}"
+                                        Content="&#xE892;" FontSize="16" Width="38" Height="38" Click="MediaPrev_Click"/>
+                                <Button x:Name="MediaPlayPauseButton" Style="{StaticResource PlayButton}"
+                                        Content="&#xE768;" Margin="6,0" Click="MediaPlayPause_Click">
+                                    <Button.Background>
+                                        <SolidColorBrush x:Name="PlayBrush" Color="#4C8DFF"/>
+                                    </Button.Background>
+                                </Button>
+                                <Button x:Name="MediaNextButton" Style="{StaticResource IconButton}"
+                                        Content="&#xE893;" FontSize="16" Width="38" Height="38" Click="MediaNext_Click"/>
+                            </StackPanel>
+
+                            <StackPanel Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3" Margin="0,12,0,0">
+                                <Grid x:Name="ProgressHit" Height="14" Background="Transparent"
+                                      MouseLeftButtonDown="ProgressHit_MouseLeftButtonDown"
+                                      MouseMove="ProgressHit_MouseMove"
+                                      MouseLeftButtonUp="ProgressHit_MouseLeftButtonUp"
+                                      LostMouseCapture="ProgressHit_LostMouseCapture"
+                                      SizeChanged="ProgressHit_SizeChanged">
+                                    <Border Height="5" CornerRadius="2.5" Background="#26FFFFFF" VerticalAlignment="Center"/>
+                                    <Border x:Name="ProgressFill" Height="5" CornerRadius="2.5" Width="0"
+                                            HorizontalAlignment="Left" VerticalAlignment="Center">
+                                        <Border.Background>
+                                            <SolidColorBrush x:Name="ProgressBrush" Color="#4C8DFF"/>
+                                        </Border.Background>
+                                    </Border>
+                                </Grid>
+                                <DockPanel Margin="0,4,0,0">
+                                    <TextBlock x:Name="RemainingText" Text="" Foreground="#99FFFFFF" FontSize="10.5"
+                                               DockPanel.Dock="Right"/>
+                                    <TextBlock x:Name="ElapsedText" Text="0:00" Foreground="#99FFFFFF" FontSize="10.5"/>
+                                </DockPanel>
+                            </StackPanel>
                         </Grid>
 
                         <!-- NOTIFICATIONS -->
