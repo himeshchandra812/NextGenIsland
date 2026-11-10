@@ -18,6 +18,16 @@ public sealed class AppSettings
     public bool NetworkMonitoringEnabled { get; set; } = true;
     public string SelectedNetworkInterface { get; set; } = "";
     public List<string> DisabledCardIds { get; set; } = new();
+    // One of: Black, Graphite, Acrylic, LiquidGlass. Missing in old settings files, so it defaults.
+    public string Theme { get; set; } = "LiquidGlass";
+    // "Notch" (hangs from the top edge) or "Pill" (floating).
+    public string IslandShape { get; set; } = "Pill";
+    // Fetches synced lyrics from lrclib.net (sends song title, artist and length).
+    public bool ShowLyrics { get; set; } = true;
+    // Weather tile (Widgets). Edit these in %LOCALAPPDATA%\NextGenIsland\settings.json to change the city.
+    public string WeatherCity { get; set; } = "Hyderabad";
+    public double WeatherLatitude { get; set; } = 17.385;
+    public double WeatherLongitude { get; set; } = 78.4867;
 }
 
 public static class SettingsStore

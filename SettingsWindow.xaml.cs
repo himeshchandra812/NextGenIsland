@@ -29,6 +29,9 @@ public partial class SettingsWindow : Window
         BatteryWarnings.IsChecked = s.BatteryWarningsEnabled;
         NetworkMonitoring.IsChecked = s.NetworkMonitoringEnabled;
 
+        ShapeCombo.SelectedIndex = s.IslandShape == "Pill" ? 1 : 0;
+        ShowLyrics.IsChecked = s.ShowLyrics;
+
         // Populate interfaces
         PopulateInterfaces(s.SelectedNetworkInterface);
         PopulateCardSettings(s);
@@ -139,6 +142,8 @@ public partial class SettingsWindow : Window
         settings.BatteryWarningsEnabled = BatteryWarnings.IsChecked == true;
         settings.NetworkMonitoringEnabled = NetworkMonitoring.IsChecked == true;
         settings.SelectedNetworkInterface = GetSelectedInterface();
+        settings.IslandShape = (ShapeCombo.SelectedItem as ComboBoxItem)?.Tag?.ToString() == "Pill" ? "Pill" : "Notch";
+        settings.ShowLyrics = ShowLyrics.IsChecked == true;
 
         settings.DisabledCardIds = CardSettingsPanel.Children
             .OfType<CheckBox>()

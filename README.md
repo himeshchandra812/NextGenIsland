@@ -3,17 +3,21 @@
 Windows desktop Dynamic Island-inspired utility (WPF / .NET 8). Independent of the JARVIS project.
 
 ## Included
-- Floating always-on-top pill with expand/collapse.
-- Tray icon; closing the window hides it instead of exiting.
-- Native Windows clipboard change listener.
-- SQLite-backed text history that survives app close/reboot.
-- Clipboard search, copy-back, pin/unpin, delete and clear-unpinned.
-- Pause clipboard capture and start-with-Windows settings.
-- CPU and RAM usage cards.
-- GitHub Actions workflow for self-contained Windows x64 releases.
+Ten tabs in one glass island (hover to expand, icon-only nav, anchored at top, not draggable):
+- Media: now playing, controls, seeking, album-adaptive colours.
+- Notifications: banners and history.
+- Clipboard: SQLite text history with search, pin, delete.
+- System monitor: CPU, RAM, GPU, battery, network.
+- File Shelf: drop files on the island, click to open, drag out to copy.
+- Reminders: quick notes (no alarms or snooze yet).
+- AI Agents: shows whether Claude, Codex, Antigravity or Hermes processes are running (by process name).
+- Widgets: clock and 25 minute focus timer.
+- Web Drawer: four pinned sites opening in the default browser.
+- Themes: Black, Graphite, Acrylic, Liquid Glass (saved).
+- Settings > Visible Cards shows or hides tabs. Tray icon, start with Windows.
 
 ## Not yet implemented
-Global media-session controls, GPU utilization/temperature, image/file clipboard formats, installer/MSIX, and encrypted clipboard storage. The music card is currently a placeholder. CPU/RAM are implemented; GPU is not claimed as working.
+Stream Tools, lyrics, weather, recurring reminders, image/file clipboard, real blur-behind for Acrylic, installer/MSIX.
 
 Clipboard capture runs while the app is running, including when hidden to tray. It cannot capture while the app is not running. Existing saved entries remain on disk.
 
@@ -22,13 +26,13 @@ Requires Windows 10/11 and .NET 8 SDK.
 
 ```powershell
 dotnet restore
-dotnet build .\src\NextGenIsland\NextGenIsland.csproj -c Release
-dotnet run --project .\src\NextGenIsland\NextGenIsland.csproj
+dotnet build .\NextGenIsland.csproj -c Release
+dotnet run --project .\NextGenIsland.csproj
 ```
 
 ## Publish locally
 ```powershell
-dotnet publish .\src\NextGenIsland\NextGenIsland.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true
+dotnet publish .\NextGenIsland.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true
 ```
 
 ## Push to GitHub

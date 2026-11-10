@@ -4,97 +4,57 @@ using NextGenIsland.Models;
 namespace NextGenIsland.Core;
 
 /// <summary>
-/// Central catalogue of all NextGen Island cards.
-/// IDs are permanent identifiers and should not be changed after release.
+/// Central catalogue of NextGen Island cards. Each card is one tab in the island.
+/// IDs are permanent identifiers (MainWindow.Modules.cs maps tabs to them).
 /// </summary>
 public static class IslandCardCatalog
 {
     private static readonly ReadOnlyCollection<IslandCardDefinition> Definitions =
         Array.AsReadOnly(new[]
         {
-            new IslandCardDefinition(
-                "system.cpu", "CPU Monitor",
-                "Processor utilization and system load.",
-                IslandCardCategory.System, 10,
-                IslandCardStatus.Available, true),
+            new IslandCardDefinition("media.player", "Media",
+                "Now playing, controls, seeking and album-adaptive colours.",
+                IslandCardCategory.Media, 10, IslandCardStatus.Available, true),
 
-            new IslandCardDefinition(
-                "system.memory", "Memory Monitor",
-                "RAM utilization and memory usage.",
-                IslandCardCategory.System, 20,
-                IslandCardStatus.Available, true),
+            new IslandCardDefinition("system.notifications", "Notifications",
+                "Banner alerts and notification history.",
+                IslandCardCategory.System, 20, IslandCardStatus.Available, true),
 
-            new IslandCardDefinition(
-                "system.gpu", "GPU Monitor",
-                "GPU utilization, temperature and VRAM.",
-                IslandCardCategory.System, 30,
-                IslandCardStatus.Available, true),
+            new IslandCardDefinition("productivity.clipboard", "Clipboard",
+                "Clipboard history with search and pinning.",
+                IslandCardCategory.Productivity, 30, IslandCardStatus.Available, true),
 
-            new IslandCardDefinition(
-                "system.battery", "Battery",
-                "Battery percentage and power status.",
-                IslandCardCategory.System, 40,
-                IslandCardStatus.Available, true),
+            new IslandCardDefinition("system.monitor", "System Monitor",
+                "CPU, RAM, GPU, battery and network.",
+                IslandCardCategory.System, 40, IslandCardStatus.Available, true),
 
-            new IslandCardDefinition(
-                "system.network", "Network",
-                "Connection state and transfer speeds.",
-                IslandCardCategory.Connectivity, 50,
-                IslandCardStatus.Available, true),
+            new IslandCardDefinition("productivity.file-shelf", "File Shelf",
+                "Drop files on the island to hold them; drag them out later.",
+                IslandCardCategory.Productivity, 50, IslandCardStatus.Available, true),
 
-            new IslandCardDefinition(
-                "media.player", "Media Player",
-                "Now playing information and playback controls.",
-                IslandCardCategory.Media, 60,
-                IslandCardStatus.Available, true),
+            new IslandCardDefinition("productivity.reminders", "Reminders",
+                "Quick notes to remember. No alarms or snooze yet.",
+                IslandCardCategory.Productivity, 60, IslandCardStatus.Partial, true),
 
-            new IslandCardDefinition(
-                "productivity.clipboard", "Clipboard",
-                "Clipboard history, search and pinned items.",
-                IslandCardCategory.Productivity, 70,
-                IslandCardStatus.Partial, true),
+            new IslandCardDefinition("developer.ai-agents", "AI Agent Monitor",
+                "Shows whether Claude, Codex, Antigravity and Hermes processes are running.",
+                IslandCardCategory.Developer, 70, IslandCardStatus.Partial, true),
 
-            new IslandCardDefinition(
-                "system.notifications", "Notifications",
-                "Notification previews and notification history.",
-                IslandCardCategory.Productivity, 80,
-                IslandCardStatus.Partial, true),
+            new IslandCardDefinition("widgets.tools", "Widgets",
+                "Clock and a 25 minute focus timer.",
+                IslandCardCategory.Productivity, 80, IslandCardStatus.Partial, true),
 
-            new IslandCardDefinition(
-                "productivity.file-shelf", "File Shelf",
-                "Temporary file holding area with drag and drop.",
-                IslandCardCategory.Productivity, 90,
-                IslandCardStatus.Planned, false),
+            new IslandCardDefinition("web.drawer", "Web Drawer",
+                "Pinned sites that open in your default browser.",
+                IslandCardCategory.Productivity, 90, IslandCardStatus.Partial, true),
 
-            new IslandCardDefinition(
-                "productivity.reminders", "Reminders",
-                "Timers, reminders and scheduled alerts.",
-                IslandCardCategory.Productivity, 100,
-                IslandCardStatus.Planned, false),
+            new IslandCardDefinition("appearance.themes", "Themes",
+                "Black, Graphite, Acrylic and Liquid Glass.",
+                IslandCardCategory.Media, 100, IslandCardStatus.Available, true),
 
-            new IslandCardDefinition(
-                "system.quick-controls", "Quick Controls",
-                "Fast access to supported Windows controls.",
-                IslandCardCategory.System, 110,
-                IslandCardStatus.Planned, false),
-
-            new IslandCardDefinition(
-                "connectivity.phone", "Phone Connect",
-                "Local phone connectivity and file transfer.",
-                IslandCardCategory.Connectivity, 120,
-                IslandCardStatus.Planned, false),
-
-            new IslandCardDefinition(
-                "gaming.performance", "Game Performance",
-                "Gaming performance and hardware telemetry.",
-                IslandCardCategory.Gaming, 130,
-                IslandCardStatus.Planned, false),
-
-            new IslandCardDefinition(
-                "developer.ai-agents", "AI Agent Monitor",
-                "Activity indicators for supported coding agents.",
-                IslandCardCategory.Developer, 140,
-                IslandCardStatus.Planned, false)
+            new IslandCardDefinition("stream.tools", "Stream Tools",
+                "Streaming helpers.",
+                IslandCardCategory.Developer, 110, IslandCardStatus.Planned, false),
         });
 
     public static IReadOnlyList<IslandCardDefinition> All => Definitions;

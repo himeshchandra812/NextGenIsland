@@ -16,12 +16,12 @@ public partial class MainWindow : Window
     private const int WmClipboardUpdate = 0x031D;
 
     // Island sizes (the window is island height + ShadowPad so the shadow is not clipped).
-    private const double CompactWidth = 330, BannerWidth = 410, ExpandedWidth = 620;
-    private const double CompactHeight = 44, BannerHeight = 66, ExpandedHeight = 206;
+    private const double CompactWidth = 330, BannerWidth = 410, ExpandedWidth = 420;
+    private const double CompactHeight = 44, BannerHeight = 66, ExpandedHeight = 180;
     private const double ShadowPad = 14;
-    private const double NavSlot = 44;
+    private const double NavSlot = 28;
 
-    private static readonly string[] ModuleKeys = { "Media", "Notifications", "Clipboard", "System" };
+    private static readonly string[] ModuleKeys = { "Media", "Notifications", "Clipboard", "System", "Shelf", "Reminders", "Agents", "Widgets", "Web", "Calls", "Themes" };
 
     private readonly ClipboardStore _store = new();
     private readonly SystemMonitorService _monitor = new();
@@ -95,6 +95,7 @@ public partial class MainWindow : Window
         UpdateQuietModeUI();
 
         _ready = true;
+        InitModules();
         NavMedia.IsChecked = true;      // fires Nav_Checked -> SelectModule("Media")
         CompactTime.Text = DateTime.Now.ToString("HH:mm");
 
@@ -129,6 +130,7 @@ public partial class MainWindow : Window
                 var preview = text.Trim();
                 if (preview.Length > 28) preview = preview[..28] + "...";
                 ClipboardStatus.Text = $"Saved: \"{preview}\"";
+                if (ViewClipboard.Visibility == Visibility.Visible) _ = RenderClipboardAsync();
             });
         }
         catch (Exception ex) { Debug.WriteLine("Clipboard capture: " + ex.Message); }
@@ -139,6 +141,7 @@ public partial class MainWindow : Window
         CompactTime.Text = DateTime.Now.ToString("HH:mm");
         await RefreshMetricsAsync();
         await _mediaService.RefreshMediaStateAsync();
+        TickModules();
     }
 
     // ---------------------------------------------------------------- metrics
@@ -242,12 +245,6 @@ public partial class MainWindow : Window
                 BannerAppNameText.Text = notif.AppName;
                 BannerTitleText.Text = notif.Title;
                 BannerBodyText.Text = notif.Message;
-                BannerIconText.Text = notif.IsSystemAlert ? "\uE7BA" : "\uE7ED";
-
-                NotifItemAppText.Text = notif.AppName;
-                NotifItemTimeText.Text = notif.Timestamp.ToString("HH:mm:ss");
-                NotifItemTitleText.Text = notif.Title;
-                NotifItemBodyText.Text = notif.Message;
 
                 SetBadge(true);
                 _bannerActive = true;
@@ -269,21 +266,7 @@ public partial class MainWindow : Window
             NotificationCountText.Text = count > 0 ? $"{count} ITEMS" : "0 NEW";
             SetBadge(count > 0);
 
-            var latest = _notificationService.History.FirstOrDefault();
-            if (latest != null)
-            {
-                NotifItemAppText.Text = latest.AppName;
-                NotifItemTimeText.Text = latest.Timestamp.ToString("HH:mm:ss");
-                NotifItemTitleText.Text = latest.Title;
-                NotifItemBodyText.Text = latest.Message;
-            }
-            else
-            {
-                NotifItemAppText.Text = "System";
-                NotifItemTimeText.Text = "-";
-                NotifItemTitleText.Text = "No notifications";
-                NotifItemBodyText.Text = "Notifications will appear here as they arrive.";
-            }
+            RenderNotifications();
         });
     }
 
@@ -306,8 +289,7 @@ public partial class MainWindow : Window
     {
         if (e.ButtonState == MouseButtonState.Pressed)
         {
-            ExpandIsland(true);
-            NavNotifications.IsChecked = true;
+            OpenNotifications();
         }
     }
 
@@ -317,8 +299,7 @@ public partial class MainWindow : Window
 
     private void BellButton_Click(object sender, RoutedEventArgs e)
     {
-        ExpandIsland(true);
-        NavNotifications.IsChecked = true;
+        OpenNotifications();
     }
 
     private void ToggleQuietMode_Click(object sender, RoutedEventArgs e)
@@ -391,6 +372,7 @@ public partial class MainWindow : Window
 
             UpdateCompactText();
             UpdatePalette(state);
+            RequestLyrics(state);
             UpdateProgress(state);
         });
     }
@@ -406,7 +388,8 @@ public partial class MainWindow : Window
             ? AlbumPalette.Extract(state.Thumbnail)
             : AlbumPalette.Fallback;
 
-        ApplyPalette(palette);
+        _albumPalette = palette;
+        ApplyPalette(EffectivePalette());
     }
 
     private void ApplyPalette(IslandPalette p)
@@ -471,6 +454,7 @@ public partial class MainWindow : Window
             ProgressFill.Width = target;
         }
 
+        UpdateLyric(position);
         ElapsedText.Text = FormatTime(position);
         RemainingText.Text = hasDuration ? "-" + FormatTime(_duration - position) : "";
     }
@@ -535,36 +519,8 @@ public partial class MainWindow : Window
     private void Nav_Checked(object sender, RoutedEventArgs e)
     {
         if (!_ready) return;
+        if (_suppressNav) return;
         if (sender is RadioButton rb && rb.Tag is string key) SelectModule(key);
-    }
-
-    private void SelectModule(string key)
-    {
-        int index = Array.IndexOf(ModuleKeys, key);
-        if (index < 0) return;
-
-        ViewMedia.Visibility = Visibility.Collapsed;
-        ViewNotifications.Visibility = Visibility.Collapsed;
-        ViewClipboard.Visibility = Visibility.Collapsed;
-        ViewSystem.Visibility = Visibility.Collapsed;
-
-        Grid view;
-        if (key == "Notifications") view = ViewNotifications;
-        else if (key == "Clipboard") view = ViewClipboard;
-        else if (key == "System") view = ViewSystem;
-        else view = ViewMedia;
-
-        view.Visibility = Visibility.Visible;
-        view.BeginAnimation(OpacityProperty,
-            new DoubleAnimation(0.0, 1.0, TimeSpan.FromMilliseconds(180)));
-
-        NavIndicatorShift.BeginAnimation(TranslateTransform.XProperty,
-            new DoubleAnimation
-            {
-                To = index * NavSlot,
-                Duration = TimeSpan.FromMilliseconds(240),
-                EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
-            });
     }
 
     // ---------------------------------------------------------------- hover / pin
@@ -591,7 +547,7 @@ public partial class MainWindow : Window
     private void CollapseTimer_Tick(object? sender, EventArgs e)
     {
         _collapseTimer?.Stop();
-        if (!_isHovering && !_isPinned && !_suspendCollapse)
+        if (!_isHovering && !_isPinned && !_suspendCollapse && !ModuleBusy)
             ExpandIsland(false);
     }
 
@@ -615,6 +571,7 @@ public partial class MainWindow : Window
     private void ExpandIsland(bool expand)
     {
         _expanded = expand;
+        ApplyPalette(EffectivePalette());
 
         if (expand)
         {
@@ -627,7 +584,7 @@ public partial class MainWindow : Window
                 if (_expanded) CompactHeader.Visibility = Visibility.Collapsed;
             });
 
-            AnimateIsland(ExpandedWidth, ExpandedHeight);
+            AnimateIsland(ExpandedWidth, HeightFor(_activeKey), overshoot: true);
         }
         else
         {
@@ -658,21 +615,25 @@ public partial class MainWindow : Window
         }
     }
 
-    private void AnimateIsland(double islandWidth, double islandHeight)
+    // Expanding gets a small springy overshoot; collapsing is a plain ease-out.
+    private void AnimateIsland(double islandWidth, double islandHeight, bool overshoot = false)
     {
-        var ease = new CubicEase { EasingMode = EasingMode.EaseOut };
+        IEasingFunction ease = overshoot
+            ? new BackEase { EasingMode = EasingMode.EaseOut, Amplitude = 0.22 }
+            : new CubicEase { EasingMode = EasingMode.EaseOut };
+        var dur = TimeSpan.FromMilliseconds(overshoot ? 380 : 280);
 
         IslandContainer.BeginAnimation(WidthProperty, new DoubleAnimation
         {
             To = islandWidth,
-            Duration = TimeSpan.FromMilliseconds(280),
+            Duration = dur,
             EasingFunction = ease
         });
 
         BeginAnimation(HeightProperty, new DoubleAnimation
         {
-            To = islandHeight + ShadowPad,
-            Duration = TimeSpan.FromMilliseconds(280),
+            To = islandHeight + ShadowPad + _topGap,
+            Duration = dur,
             EasingFunction = ease
         });
     }
@@ -711,6 +672,10 @@ public partial class MainWindow : Window
             _notificationService.DisplayDurationSeconds = _settings.NotificationDurationSeconds;
             _networkMonitor.SetSelectedInterface(_settings.SelectedNetworkInterface);
             UpdateQuietModeUI();
+            ApplyCardVisibility();
+            ApplyPalette(EffectivePalette());
+            ApplyShape();
+            _lyricKey = "x";   // forces RequestLyrics to re-evaluate after a settings change
         }
         finally { EndModal(); }
     }
@@ -736,6 +701,7 @@ public partial class MainWindow : Window
         if (!_allowExit) { e.Cancel = true; Hide(); _tray?.ShowBalloon("Still running in the system tray."); return; }
 
         _timer.Stop();
+        _focusTimer.Stop();
         var hwnd = new WindowInteropHelper(this).Handle;
         NativeMethods.RemoveClipboardFormatListener(hwnd);
         _source?.RemoveHook(WndProc);

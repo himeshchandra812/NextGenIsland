@@ -126,6 +126,33 @@
                             </StackPanel>
                         </Border>
 
+                        <!-- Appearance -->
+                        <TextBlock Text="APPEARANCE" Foreground="#8E8E93" FontSize="10" FontWeight="Bold" Margin="4,0,0,6"/>
+                        <Border Background="#16161E" BorderBrush="#252532" BorderThickness="1" CornerRadius="14" Padding="16,12" Margin="0,0,0,14">
+                            <StackPanel>
+                                <DockPanel>
+                                    <StackPanel VerticalAlignment="Center" Margin="0,0,12,0">
+                                        <TextBlock Text="Island Shape" Foreground="White" FontSize="12.5" FontWeight="SemiBold"/>
+                                        <TextBlock Text="Notch hangs from the top edge. Floating pill sits slightly below it." Foreground="#8E8E93" FontSize="10.5" Margin="0,2,0,0"/>
+                                    </StackPanel>
+                                    <ComboBox x:Name="ShapeCombo" Width="130" Height="26" DockPanel.Dock="Right" HorizontalAlignment="Right">
+                                        <ComboBoxItem Content="Notch" Tag="Notch"/>
+                                        <ComboBoxItem Content="Floating pill" Tag="Pill"/>
+                                    </ComboBox>
+                                </DockPanel>
+
+                                <Border Height="1" Background="#252532" Margin="0,10"/>
+
+                                <DockPanel>
+                                    <StackPanel VerticalAlignment="Center" Margin="0,0,12,0">
+                                        <TextBlock Text="Synced Lyrics" Foreground="White" FontSize="12.5" FontWeight="SemiBold"/>
+                                        <TextBlock Text="Shows the current line in the Media tab. Sends song title, artist and length to lrclib.net." Foreground="#8E8E93" FontSize="10.5" Margin="0,2,0,0" TextWrapping="Wrap"/>
+                                    </StackPanel>
+                                    <CheckBox x:Name="ShowLyrics" DockPanel.Dock="Right" HorizontalAlignment="Right"/>
+                                </DockPanel>
+                            </StackPanel>
+                        </Border>
+
                         <!-- Card customization -->
                         <TextBlock Text="ISLAND CARDS" Foreground="#8E8E93" FontSize="10" FontWeight="Bold" Margin="4,0,0,6"/>
                         <Border Background="#16161E" BorderBrush="#252532" BorderThickness="1" CornerRadius="14" Padding="16,12" Margin="0,0,0,14">
