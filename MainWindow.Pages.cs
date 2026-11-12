@@ -20,8 +20,8 @@ public partial class MainWindow
 {
     private static readonly Dictionary<string, double> ViewHeights = new()
     {
-        ["Media"] = 180, ["Notifications"] = 214, ["Clipboard"] = 190, ["System"] = 140, ["Shelf"] = 176,
-        ["Reminders"] = 196, ["Agents"] = 188, ["Widgets"] = 232, ["Web"] = 196, ["Calls"] = 190, ["Themes"] = 156,
+        ["Media"] = 178, ["Notifications"] = 214, ["Clipboard"] = 190, ["System"] = 140, ["Shelf"] = 176,
+        ["Reminders"] = 196, ["Agents"] = 188, ["Widgets"] = 232, ["Web"] = 196, ["Calls"] = 190,
     };
 
     private double HeightFor(string key)
@@ -38,7 +38,9 @@ public partial class MainWindow
     // Tabs have different content, so the island grows or shrinks to fit the active one.
     private void ResizeForView()
     {
-        if (_expanded) AnimateIsland(ExpandedWidth, HeightFor(_activeKey));
+        if (!_expanded) return;
+        SyncExpandedHeight();
+        AnimateIsland(ExpandedWidth, HeightFor(_activeKey));
     }
 
     private static SolidColorBrush Rgba(byte a, byte r, byte g, byte b) => new(Color.FromArgb(a, r, g, b));
@@ -133,13 +135,30 @@ public partial class MainWindow
         try { items = await _store.SearchAsync(""); }
         catch (Exception ex) { Debug.WriteLine("RenderClipboard: " + ex.Message); return; }
 
-        if (_clipFilter == "Pinned") items = items.Where(i => i.Pinned).ToList();
+        items = _clipFilter switch
+        {
+            "Pinned" => items.Where(i => i.Pinned).ToList(),
+            "Text" => items.Where(i => i.Kind == "text").ToList(),
+            "Images" => items.Where(i => i.Kind == "image").ToList(),
+            "Files" => items.Where(i => i.Kind == "files").ToList(),
+            _ => items
+        };
 
         ClipList.Children.Clear();
         foreach (var it in items.Take(3)) ClipList.Children.Add(MakeClipCard(it));
-        ClipEmptyText.Text = _clipFilter == "Pinned" ? "No pinned items yet." : "Copy some text and it shows up here.";
+        ClipEmptyText.Text = _clipFilter switch
+        {
+            "Pinned" => "No pinned items yet.",
+            "Text" => "No text copied yet.",
+            "Images" => "No images yet. Copy an image or take a screenshot.",
+            "Files" => "No files yet. Copy files in Explorer.",
+            _ => "Copy text, an image or files and it shows up here."
+        };
         ClipEmptyText.Visibility = items.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
         ClipChipAll.Opacity = _clipFilter == "All" ? 1.0 : 0.5;
+        ClipChipText.Opacity = _clipFilter == "Text" ? 1.0 : 0.5;
+        ClipChipImages.Opacity = _clipFilter == "Images" ? 1.0 : 0.5;
+        ClipChipFiles.Opacity = _clipFilter == "Files" ? 1.0 : 0.5;
         ClipChipPinned.Opacity = _clipFilter == "Pinned" ? 1.0 : 0.5;
     }
 
@@ -158,8 +177,14 @@ public partial class MainWindow
 
     private UIElement MakeClipCard(ClipboardItem it)
     {
-        string flat = it.Text.Trim().Replace("\r", " ").Replace("\n", " ");
-        if (flat.Length > 90) flat = flat.Substring(0, 90) + "...";
+        string label = it.Kind switch { "image" => "Image", "files" => "Files", _ => "Text" };
+        Brush labelBrush = it.Kind switch
+        {
+            "image" => Rgba(0xFF, 0x64, 0xD2, 0xFF),
+            "files" => Rgba(0xFF, 0xBF, 0x5A, 0xF2),
+            _ => Rgba(0xFF, 0x30, 0xD1, 0x58)
+        };
+        if (it.Pinned) { label = "Pinned"; labelBrush = Rgba(0xFF, 0xFF, 0x9F, 0x0A); }
 
         var header = new DockPanel();
         var del = MiniAction("x", "Delete", () => _ = DeleteClipAsync(it));
@@ -171,19 +196,72 @@ public partial class MainWindow
         header.Children.Add(pin);
         header.Children.Add(new TextBlock
         {
-            Text = it.Pinned ? "Pinned" : "Text", FontSize = 10, FontWeight = FontWeights.Bold,
-            Foreground = it.Pinned ? Rgba(0xFF, 0xFF, 0x9F, 0x0A) : Rgba(0xFF, 0x30, 0xD1, 0x58)
+            Text = label, FontSize = 10, FontWeight = FontWeights.Bold, Foreground = labelBrush
         });
 
-        var body = new TextBlock
+        string footText = Ago(it.CreatedAt);
+        UIElement body;
+        switch (it.Kind)
         {
-            Text = flat, Foreground = Brushes.White, FontSize = 11.5, TextWrapping = TextWrapping.Wrap,
-            MaxHeight = 50, Margin = new Thickness(0, 6, 0, 0)
-        };
+            case "image":
+            {
+                var thumb = string.IsNullOrEmpty(it.ImagePath) ? null : ClipboardAccess.LoadThumb(it.ImagePath, 220);
+                if (thumb != null)
+                {
+                    body = new Border
+                    {
+                        Height = 46, CornerRadius = new CornerRadius(8), Margin = new Thickness(0, 6, 0, 4),
+                        Background = new ImageBrush(thumb) { Stretch = Stretch.UniformToFill }
+                    };
+                }
+                else
+                {
+                    body = new TextBlock
+                    {
+                        Text = "Image file missing", Foreground = Rgba(0x99, 0xFF, 0xFF, 0xFF), FontSize = 11,
+                        Margin = new Thickness(0, 6, 0, 0)
+                    };
+                }
+                if (!string.IsNullOrEmpty(it.Meta)) footText = it.Meta + "  " + footText;
+                break;
+            }
+            case "files":
+            {
+                var paths = it.Text.Split('\n', StringSplitOptions.RemoveEmptyEntries);
+                string first = paths.Length > 0 ? System.IO.Path.GetFileName(paths[0].TrimEnd('\\', '/')) : "";
+                if (first.Length == 0 && paths.Length > 0) first = paths[0];
+                var stack = new StackPanel { Margin = new Thickness(0, 6, 0, 0) };
+                stack.Children.Add(new TextBlock
+                {
+                    Text = first, Foreground = Brushes.White, FontSize = 11.5, TextWrapping = TextWrapping.Wrap,
+                    MaxHeight = 32, TextTrimming = TextTrimming.CharacterEllipsis
+                });
+                if (paths.Length > 1)
+                    stack.Children.Add(new TextBlock
+                    {
+                        Text = "+" + (paths.Length - 1) + " more", FontSize = 10.5, Foreground = Rgba(0x99, 0xFF, 0xFF, 0xFF),
+                        Margin = new Thickness(0, 2, 0, 0)
+                    });
+                body = stack;
+                break;
+            }
+            default:
+            {
+                string flat = it.Text.Trim().Replace("\r", " ").Replace("\n", " ");
+                if (flat.Length > 90) flat = flat.Substring(0, 90) + "...";
+                body = new TextBlock
+                {
+                    Text = flat, Foreground = Brushes.White, FontSize = 11.5, TextWrapping = TextWrapping.Wrap,
+                    MaxHeight = 50, Margin = new Thickness(0, 6, 0, 0)
+                };
+                break;
+            }
+        }
+
         var foot = new TextBlock
         {
-            Text = Ago(it.CreatedAt), FontSize = 10, Foreground = Rgba(0x80, 0xFF, 0xFF, 0xFF),
-            VerticalAlignment = VerticalAlignment.Bottom
+            Text = footText, FontSize = 10, Foreground = Rgba(0x80, 0xFF, 0xFF, 0xFF),
+            VerticalAlignment = VerticalAlignment.Bottom, TextTrimming = TextTrimming.CharacterEllipsis
         };
 
         var grid = new Grid();
@@ -205,8 +283,8 @@ public partial class MainWindow
         };
         card.MouseLeftButtonUp += (_, _) =>
         {
-            try { Clipboard.SetText(it.Text); ClipboardStatus.Text = "Copied to clipboard"; }
-            catch (Exception ex) { Debug.WriteLine("Copy back: " + ex.Message); }
+            try { ClipboardStatus.Text = ClipboardAccess.CopyBack(it); }
+            catch (Exception ex) { ClipboardStatus.Text = "Could not copy back"; Debug.WriteLine("Copy back: " + ex.Message); }
         };
         return card;
     }

@@ -108,14 +108,27 @@ public sealed class MediaControllerService : IDisposable
             var appName = CleanAppName(session.SourceAppUserModelId);
             var isPlaying = playback?.PlaybackStatus == GlobalSystemMediaTransportControlsSessionPlaybackStatus.Playing;
 
-            // Reuse the decoded artwork while the same track is playing (this method runs every second).
-            var thumbKey = $"{appName}|{props?.Title}|{props?.Artist}|{props?.AlbumTitle}";
+            // Browsers often publish the title first and the real cover a moment later, so the artwork can
+            // change while the track stays the same. The cache key therefore includes the artwork's byte
+            // size, and the image is only decoded again when that changes (this method runs every second).
+            IRandomAccessStreamWithContentType? streamRef = null;
+            try
+            {
+                if (props?.Thumbnail != null)
+                    streamRef = await props.Thumbnail.OpenReadAsync();
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine("Thumbnail open error: " + ex.Message);
+            }
+
+            ulong thumbSize = streamRef?.Size ?? 0UL;
+            var thumbKey = $"{appName}|{props?.Title}|{props?.Artist}|{props?.AlbumTitle}|{thumbSize}";
             BitmapImage? thumbnail = (_thumbCache != null && thumbKey == _thumbKey) ? _thumbCache : null;
-            if (thumbnail == null && props?.Thumbnail != null)
+            if (thumbnail == null && streamRef != null)
             {
                 try
                 {
-                    using var streamRef = await props.Thumbnail.OpenReadAsync();
                     using var netStream = streamRef.AsStreamForRead();
                     using var ms = new MemoryStream();
                     await netStream.CopyToAsync(ms);
@@ -136,6 +149,7 @@ public sealed class MediaControllerService : IDisposable
                     Debug.WriteLine("Thumbnail decode error: " + ex);
                 }
             }
+            streamRef?.Dispose();
 
             // Timeline (position / duration / seekable)
             TimeSpan position = TimeSpan.Zero, duration = TimeSpan.Zero;

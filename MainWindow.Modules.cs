@@ -10,7 +10,7 @@ using System.Windows.Threading;
 
 namespace NextGenIsland;
 
-// Navigation, theming and the Shelf / Reminders / Agents / Widgets / Web / Themes modules.
+// Navigation, theming and the Shelf / Reminders / Agents / Widgets / Web / Calls modules.
 public partial class MainWindow
 {
     // Module key -> card id in IslandCardCatalog. Media can never be hidden (it is the fallback tab).
@@ -26,7 +26,6 @@ public partial class MainWindow
         ["Widgets"] = "widgets.tools",
         ["Web"] = "web.drawer",
         ["Calls"] = "calls.tools",
-        ["Themes"] = "appearance.themes",
     };
 
     private Dictionary<string, Grid> _views = new();
@@ -59,13 +58,13 @@ public partial class MainWindow
         {
             ["Media"] = ViewMedia, ["Notifications"] = ViewNotifications, ["Clipboard"] = ViewClipboard,
             ["System"] = ViewSystem, ["Shelf"] = ViewShelf, ["Reminders"] = ViewReminders,
-            ["Agents"] = ViewAgents, ["Widgets"] = ViewWidgets, ["Web"] = ViewWeb, ["Calls"] = ViewCalls, ["Themes"] = ViewThemes,
+            ["Agents"] = ViewAgents, ["Widgets"] = ViewWidgets, ["Web"] = ViewWeb, ["Calls"] = ViewCalls,
         };
         _navButtons = new Dictionary<string, RadioButton>
         {
             ["Media"] = NavMedia, ["Notifications"] = NavNotifications, ["Clipboard"] = NavClipboard,
             ["System"] = NavSystem, ["Shelf"] = NavShelf, ["Reminders"] = NavReminders,
-            ["Agents"] = NavAgents, ["Widgets"] = NavWidgets, ["Web"] = NavWeb, ["Calls"] = NavCalls, ["Themes"] = NavThemes,
+            ["Agents"] = NavAgents, ["Widgets"] = NavWidgets, ["Web"] = NavWeb, ["Calls"] = NavCalls,
         };
 
         LoadExtraData();
@@ -75,6 +74,7 @@ public partial class MainWindow
         ApplyCardVisibility();
         ApplyPalette(EffectivePalette());
         ApplyShape();
+        UpdateLyricsIcon();
     }
 
     private bool IsModuleEnabled(string key)
@@ -97,11 +97,14 @@ public partial class MainWindow
         double dx = next == prev ? 0.0 : (next > prev ? 18.0 : -18.0);
         var slide = new TranslateTransform(dx, 0);
         view.RenderTransform = slide;
-        slide.BeginAnimation(TranslateTransform.XProperty, new DoubleAnimation(dx, 0, TimeSpan.FromMilliseconds(240))
+        slide.BeginAnimation(TranslateTransform.XProperty, new DoubleAnimation(dx, 0, TimeSpan.FromMilliseconds(300))
+        {
+            EasingFunction = new QuinticEase { EasingMode = EasingMode.EaseOut }
+        });
+        view.BeginAnimation(OpacityProperty, new DoubleAnimation(0.0, 1.0, TimeSpan.FromMilliseconds(220))
         {
             EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
         });
-        view.BeginAnimation(OpacityProperty, new DoubleAnimation(0.0, 1.0, TimeSpan.FromMilliseconds(180)));
 
         MoveIndicator(animate: true);
         RefreshModuleData(key);
@@ -179,7 +182,6 @@ public partial class MainWindow
             case "Agents": _ = RefreshAgentsAsync(); break;
             case "Widgets": UpdateWidgetClock(); _ = RefreshWeatherAsync(); break;
             case "Calls": LoadCallDevices(); UpdateMicUi(); break;
-            case "Themes": UpdateThemeButtons(); break;
         }
     }
 
@@ -204,6 +206,33 @@ public partial class MainWindow
     // Expanded non-media tabs use a neutral near-black body; Media and the collapsed notch keep the album colours.
     private IslandPalette EffectivePalette()
     {
+        // Wallpaper theme: the whole island (every tab, collapsed or open) is tinted from the desktop wallpaper.
+        if (_settings.Theme == "Wallpaper")
+        {
+            var w = WallpaperTheme.Get();
+            var dark = Color.FromRgb(8, 8, 10);
+            return w with
+            {
+                BackgroundStart = MixTint(dark, w.Accent, 0.46, 0xF4),
+                BackgroundEnd = MixTint(dark, w.Accent, 0.16, 0xF8),
+                Border = Color.FromArgb(0x66, w.Accent.R, w.Accent.G, w.Accent.B),
+                NavIndicator = Colors.White
+            };
+        }
+
+        // Collapsed pill with nothing playing: neutral charcoal with a thin grey edge (NotchPixel look).
+        if (!_expanded && _settings.IslandShape == "Pill" && _settings.Theme == "LiquidGlass"
+            && _albumPalette.Equals(AlbumPalette.Fallback))
+        {
+            return _albumPalette with
+            {
+                BackgroundStart = Color.FromArgb(0xF4, 0x24, 0x25, 0x29),
+                BackgroundEnd = Color.FromArgb(0xF4, 0x1B, 0x1C, 0x1F),
+                Border = Color.FromArgb(0x58, 0x8E, 0x90, 0x98),
+                NavIndicator = Colors.White
+            };
+        }
+
         var p = ThemePalette();
         bool plainTheme = _settings.Theme is "Black" or "Graphite" or "Acrylic";
         if (_expanded && _activeKey != "Media" && !plainTheme)
@@ -264,24 +293,6 @@ public partial class MainWindow
             default:
                 return a;
         }
-    }
-
-    private void Theme_Click(object sender, RoutedEventArgs e)
-    {
-        if (sender is not Button b || b.Tag is not string theme) return;
-        _settings.Theme = theme;
-        try { SettingsStore.Save(_settings); } catch (Exception ex) { Debug.WriteLine("Theme save: " + ex.Message); }
-        ApplyPalette(EffectivePalette());
-        UpdateThemeButtons();
-    }
-
-    private void UpdateThemeButtons()
-    {
-        var on = Brushes.White;
-        ThemeBlackBtn.BorderBrush = _settings.Theme == "Black" ? on : Brushes.Transparent;
-        ThemeGraphiteBtn.BorderBrush = _settings.Theme == "Graphite" ? on : Brushes.Transparent;
-        ThemeAcrylicBtn.BorderBrush = _settings.Theme == "Acrylic" ? on : Brushes.Transparent;
-        ThemeGlassBtn.BorderBrush = (_settings.Theme is not ("Black" or "Graphite" or "Acrylic")) ? on : Brushes.Transparent;
     }
 
     // ---------------------------------------------------------------- persistence

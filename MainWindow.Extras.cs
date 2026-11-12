@@ -17,6 +17,17 @@ public partial class MainWindow
 
     // ---------------------------------------------------------------- lyrics
 
+    private void LyricsToggle_Click(object sender, RoutedEventArgs e)
+    {
+        _settings.ShowLyrics = !_settings.ShowLyrics;
+        try { SettingsStore.Save(_settings); } catch { }
+        UpdateLyricsIcon();
+        _lyricKey = "x";   // makes the next media refresh re-request (or clear) the lyrics
+        if (!_settings.ShowLyrics) SetLyricText("");
+    }
+
+    private void UpdateLyricsIcon() => LyricsToggleButton.Opacity = _settings.ShowLyrics ? 1.0 : 0.4;
+
     private void RequestLyrics(NextGenIsland.Services.MediaState state)
     {
         string key = _settings.ShowLyrics && state.HasMedia ? state.Title + "|" + state.Artist : "";
@@ -88,6 +99,8 @@ public partial class MainWindow
         GlassHighlight.CornerRadius = radius;
         GlassRim.CornerRadius = radius;
         GlassRim.BorderThickness = pill ? new Thickness(1) : new Thickness(1, 0, 1, 1);
+        GlassHighlight.Visibility = pill ? Visibility.Collapsed : Visibility.Visible;
+        GlassRim.Opacity = pill ? 0.25 : 1.0;
         IslandContainer.BorderThickness = pill ? new Thickness(1) : new Thickness(1, 0, 1, 1);
         _topGap = pill ? 8 : 0;
         IslandContainer.Margin = new Thickness(0, _topGap, 0, 0);

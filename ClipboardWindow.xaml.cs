@@ -39,7 +39,10 @@ public partial class ClipboardWindow : Window
     private void Copy_Click(object sender, RoutedEventArgs e)
     {
         if ((sender as Button)?.Tag is ClipboardItem i)
-            Clipboard.SetText(i.Text);
+        {
+            try { CountText.Text = ClipboardAccess.CopyBack(i); }
+            catch (Exception ex) { CountText.Text = "Could not copy: " + ex.Message; }
+        }
     }
 
     private async void Pin_Click(object sender, RoutedEventArgs e)

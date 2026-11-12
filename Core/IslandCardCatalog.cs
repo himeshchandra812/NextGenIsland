@@ -33,7 +33,7 @@ public static class IslandCardCatalog
                 IslandCardCategory.Productivity, 50, IslandCardStatus.Available, true),
 
             new IslandCardDefinition("productivity.reminders", "Reminders",
-                "Quick notes to remember. No alarms or snooze yet.",
+                "Timed reminders with a due time and repeat options.",
                 IslandCardCategory.Productivity, 60, IslandCardStatus.Partial, true),
 
             new IslandCardDefinition("developer.ai-agents", "AI Agent Monitor",
@@ -41,16 +41,16 @@ public static class IslandCardCatalog
                 IslandCardCategory.Developer, 70, IslandCardStatus.Partial, true),
 
             new IslandCardDefinition("widgets.tools", "Widgets",
-                "Clock and a 25 minute focus timer.",
+                "Calendar, focus timer, weather and CPU/RAM stats.",
                 IslandCardCategory.Productivity, 80, IslandCardStatus.Partial, true),
 
             new IslandCardDefinition("web.drawer", "Web Drawer",
                 "Pinned sites that open in your default browser.",
                 IslandCardCategory.Productivity, 90, IslandCardStatus.Partial, true),
 
-            new IslandCardDefinition("appearance.themes", "Themes",
-                "Black, Graphite, Acrylic and Liquid Glass.",
-                IslandCardCategory.Media, 100, IslandCardStatus.Available, true),
+            new IslandCardDefinition("calls.tools", "Calls",
+                "Mute your microphone, test speaker and mic, open the camera.",
+                IslandCardCategory.Connectivity, 95, IslandCardStatus.Available, true),
 
             new IslandCardDefinition("stream.tools", "Stream Tools",
                 "Streaming helpers.",

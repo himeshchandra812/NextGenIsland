@@ -16,12 +16,12 @@ public partial class MainWindow : Window
     private const int WmClipboardUpdate = 0x031D;
 
     // Island sizes (the window is island height + ShadowPad so the shadow is not clipped).
-    private const double CompactWidth = 330, BannerWidth = 410, ExpandedWidth = 420;
-    private const double CompactHeight = 44, BannerHeight = 66, ExpandedHeight = 180;
+    private const double CompactWidth = 212, BannerWidth = 410, ExpandedWidth = 420;
+    private const double CompactHeight = 38, BannerHeight = 66, ExpandedHeight = 180;
     private const double ShadowPad = 14;
     private const double NavSlot = 28;
 
-    private static readonly string[] ModuleKeys = { "Media", "Notifications", "Clipboard", "System", "Shelf", "Reminders", "Agents", "Widgets", "Web", "Calls", "Themes" };
+    private static readonly string[] ModuleKeys = { "Media", "Notifications", "Clipboard", "System", "Shelf", "Reminders", "Agents", "Widgets", "Web", "Calls" };
 
     private readonly ClipboardStore _store = new();
     private readonly SystemMonitorService _monitor = new();
@@ -121,15 +121,13 @@ public partial class MainWindow : Window
     {
         try
         {
-            if (SettingsStore.Load().ClipboardPaused || !Clipboard.ContainsText()) return;
-            var text = Clipboard.GetText();
-            if (string.IsNullOrWhiteSpace(text) || text.Length > 100_000) return;
-            await _store.SaveIfNewAsync(text);
+            if (SettingsStore.Load().ClipboardPaused) return;
+            string? status = await ClipboardAccess.CaptureAsync(_store);
+            if (status == null) return;
+
             await Dispatcher.InvokeAsync(() =>
             {
-                var preview = text.Trim();
-                if (preview.Length > 28) preview = preview[..28] + "...";
-                ClipboardStatus.Text = $"Saved: \"{preview}\"";
+                ClipboardStatus.Text = status;
                 if (ViewClipboard.Visibility == Visibility.Visible) _ = RenderClipboardAsync();
             });
         }
@@ -139,6 +137,7 @@ public partial class MainWindow : Window
     private async Task OnTimerTickAsync()
     {
         CompactTime.Text = DateTime.Now.ToString("HH:mm");
+        CheckFullscreen();
         await RefreshMetricsAsync();
         await _mediaService.RefreshMediaStateAsync();
         TickModules();
@@ -226,13 +225,22 @@ public partial class MainWindow : Window
                 NetworkSpeedText.Text = "Disconnected";
             }
 
-            _metricsSummary = $"CPU {m.Cpu:0}% \u2022 RAM {m.Ram:0}%";
+            CompactCpuValue.Text = $"{m.Cpu:0}%";
+            bool gpuTemp = g.IsAvailable;
+            CompactRightLabel.Visibility = gpuTemp ? Visibility.Collapsed : Visibility.Visible;
+            CompactRightValue.Text = gpuTemp ? $"{g.Temperature:0}\u00B0" : $"{m.Ram:0}%";
             UpdateCompactText();
         }
         catch (Exception ex) { Debug.WriteLine("RefreshMetricsAsync error: " + ex); }
     }
 
-    private void UpdateCompactText() => CompactMetrics.Text = _mediaLabel ?? _metricsSummary;
+    private void UpdateCompactText()
+    {
+        bool media = _mediaLabel != null;
+        CompactMetrics.Text = _mediaLabel ?? "";
+        CompactMetrics.Visibility = media ? Visibility.Visible : Visibility.Collapsed;
+        CompactStats.Visibility = media ? Visibility.Collapsed : Visibility.Visible;
+    }
 
     // ---------------------------------------------------------------- notifications
 
@@ -344,6 +352,8 @@ public partial class MainWindow : Window
                 MediaStatusBadge.Text = state.IsPlaying ? "PLAYING" : "PAUSED";
                 MediaAppText.Text = !string.IsNullOrWhiteSpace(state.AppName) ? "\u2022 " + state.AppName : "";
                 MediaPlayPauseButton.Content = state.IsPlaying ? "\uE769" : "\uE768";
+                MediaSourceBadge.Visibility = Visibility.Visible;
+                MediaSourceBadge.ToolTip = string.IsNullOrWhiteSpace(state.AppName) ? null : state.AppName;
 
                 if (state.Thumbnail != null)
                 {
@@ -365,6 +375,7 @@ public partial class MainWindow : Window
                 MediaStatusBadge.Text = "NO MEDIA";
                 MediaAppText.Text = "";
                 MediaPlayPauseButton.Content = "\uE768";
+                MediaSourceBadge.Visibility = Visibility.Collapsed;
                 MediaArtBorder.Visibility = Visibility.Collapsed;
                 MediaDefaultArt.Visibility = Visibility.Visible;
                 _mediaLabel = null;
@@ -398,9 +409,8 @@ public partial class MainWindow : Window
         AnimateStop(BgStop2, p.BackgroundEnd);
         AnimateBrush(IslandBorderBrush, p.Border);
         AnimateBrush(NavIndicatorBrush, p.NavIndicator);
-        AnimateBrush(PlayBrush, p.Accent);
-        AnimateBrush(ProgressBrush, p.Accent);
-        MediaPlayPauseButton.Foreground = new SolidColorBrush(p.OnAccent);
+        AnimateBrush(BadgeBrush, p.Accent);
+        MediaBadgeGlyph.Foreground = new SolidColorBrush(p.OnAccent);
     }
 
     private static ColorAnimation MakeColorAnimation(Color to) => new()
@@ -454,6 +464,7 @@ public partial class MainWindow : Window
             ProgressFill.Width = target;
         }
 
+        ProgressKnob.Visibility = hasDuration ? Visibility.Visible : Visibility.Collapsed;
         UpdateLyric(position);
         ElapsedText.Text = FormatTime(position);
         RemainingText.Text = hasDuration ? "-" + FormatTime(_duration - position) : "";
@@ -571,11 +582,13 @@ public partial class MainWindow : Window
     private void ExpandIsland(bool expand)
     {
         _expanded = expand;
+        ApplyLineLook();
         ApplyPalette(EffectivePalette());
 
         if (expand)
         {
             NotificationBanner.Visibility = Visibility.Collapsed;
+            SyncExpandedHeight();
 
             ExpandedRoot.Visibility = Visibility.Visible;
             FadeTo(ExpandedRoot, 1.0, 220, 70);
@@ -600,6 +613,16 @@ public partial class MainWindow : Window
     // Shows either the compact pill or the notification banner, sized correctly.
     private void ShowCollapsedState()
     {
+        ApplyLineLook();
+        if (_fullscreen)
+        {
+            // Full-screen app in front: just a thin line (banners wait in the history).
+            CompactHeader.Visibility = Visibility.Collapsed;
+            NotificationBanner.Visibility = Visibility.Collapsed;
+            AnimateIsland(LineWidth, LineHeight);
+            return;
+        }
+
         if (_bannerActive)
         {
             CompactHeader.Visibility = Visibility.Collapsed;
@@ -615,13 +638,15 @@ public partial class MainWindow : Window
         }
     }
 
+    // The window is a fixed, transparent canvas; only the island itself changes size. That keeps the
+    // window from being resized every frame, which is what made the old animation stutter.
     // Expanding gets a small springy overshoot; collapsing is a plain ease-out.
     private void AnimateIsland(double islandWidth, double islandHeight, bool overshoot = false)
     {
         IEasingFunction ease = overshoot
-            ? new BackEase { EasingMode = EasingMode.EaseOut, Amplitude = 0.22 }
-            : new CubicEase { EasingMode = EasingMode.EaseOut };
-        var dur = TimeSpan.FromMilliseconds(overshoot ? 380 : 280);
+            ? new BackEase { EasingMode = EasingMode.EaseOut, Amplitude = 0.16 }
+            : new QuarticEase { EasingMode = EasingMode.EaseOut };
+        var dur = TimeSpan.FromMilliseconds(overshoot ? 420 : 320);
 
         IslandContainer.BeginAnimation(WidthProperty, new DoubleAnimation
         {
@@ -630,13 +655,17 @@ public partial class MainWindow : Window
             EasingFunction = ease
         });
 
-        BeginAnimation(HeightProperty, new DoubleAnimation
+        IslandContainer.BeginAnimation(HeightProperty, new DoubleAnimation
         {
-            To = islandHeight + ShadowPad + _topGap,
+            To = islandHeight,
             Duration = dur,
             EasingFunction = ease
         });
     }
+
+    // The expanded content keeps a fixed size while the island grows around it, so it is not re-laid-out every frame.
+    private void SyncExpandedHeight()
+        => ExpandedRoot.Height = Math.Max(0.0, HeightFor(_activeKey) - 2.0);
 
     private static void FadeTo(UIElement element, double to, int milliseconds, int delayMs = 0, Action? done = null)
     {
@@ -676,6 +705,9 @@ public partial class MainWindow : Window
             ApplyPalette(EffectivePalette());
             ApplyShape();
             _lyricKey = "x";   // forces RequestLyrics to re-evaluate after a settings change
+            UpdateLyricsIcon();
+            _weatherAt = DateTime.MinValue;   // a new weather city takes effect right away
+            if (_activeKey == "Widgets") _ = RefreshWeatherAsync();
         }
         finally { EndModal(); }
     }

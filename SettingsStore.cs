@@ -11,6 +11,8 @@ public sealed class AppSettings
     public bool ClickPinEnabled { get; set; } = true;
     public bool ClipboardPaused { get; set; } = false;
     public bool StartWithWindows { get; set; }
+    // Collapses the island to a thin line at the top edge while a full-screen app is in front.
+    public bool ShrinkInFullscreen { get; set; } = true;
     public bool NotificationsEnabled { get; set; } = true;
     public int NotificationDurationSeconds { get; set; } = 5;
     public bool QuietMode { get; set; }
