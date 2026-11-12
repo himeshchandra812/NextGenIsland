@@ -1,57 +1,66 @@
 # NextGen Island
 
-Windows desktop Dynamic Island-inspired utility (WPF / .NET 8). Independent of the JARVIS project.
+A Dynamic Island for Windows 11, built with WPF and .NET 8. A small pill sits at the top of your screen
+showing CPU load and temperature; hover to expand it into ten tabs. Inspired by NotchPixel.
 
-## Included
-Ten tabs in one glass island (hover to expand, icon-only nav, anchored at top, not draggable):
-- Media: now playing, controls, seeking, album-adaptive colours.
-- Notifications: banners and history.
-- Clipboard: SQLite text history with search, pin, delete.
-- System monitor: CPU, RAM, GPU, battery, network.
-- File Shelf: drop files on the island, click to open, drag out to copy.
-- Reminders: quick notes (no alarms or snooze yet).
-- AI Agents: shows whether Claude, Codex, Antigravity or Hermes processes are running (by process name).
-- Widgets: clock and 25 minute focus timer.
-- Web Drawer: four pinned sites opening in the default browser.
-- Themes: Black, Graphite, Acrylic, Liquid Glass (saved).
-- Settings > Visible Cards shows or hides tabs. Tray icon, start with Windows.
+## Features
 
-## Not yet implemented
-Stream Tools, lyrics, weather, recurring reminders, image/file clipboard, real blur-behind for Acrylic, installer/MSIX.
+| Tab | What it does |
+| --- | --- |
+| Media | Now playing from any Windows media app, transport controls, seeking, live lyrics, colours taken from the album art |
+| Notifications | Banners on the pill, history (3 at a time, scroll the mouse wheel for more), quiet mode, clear all |
+| Clipboard | Searchable history of text, images and files, pin and filter, click to copy back |
+| System | CPU, RAM, GPU (load, temperature, VRAM), battery and network speed |
+| Shelf | Drop files on the island to park them, click to open, drag out to copy |
+| Reminders | Quick reminders with times and repeats |
+| Agents | Shows whether Claude, Codex, Antigravity or Hermes processes are running |
+| Widgets | Date, clock, 25-minute focus timer, weather for your city, CPU and RAM sparklines |
+| Web | Pinned sites that open in a browser drawer under the island (WebView2) |
+| Calls | Microphone mute, speaker and microphone test |
 
-Clipboard capture runs while the app is running, including when hidden to tray. It cannot capture while the app is not running. Existing saved entries remain on disk.
+Also:
+- **Shapes:** Pill (default) or Notch.
+- **Themes:** Liquid Glass, Wallpaper (tinted from your desktop wallpaper), Black, Graphite, Acrylic.
+- **Full-screen apps:** the island shrinks to a thin line while a full-screen app is in front.
+- **Settings:** show or hide tabs, start with Windows, weather city, shape and theme. Tray icon included.
 
-## Build
-Requires Windows 10/11 and .NET 8 SDK.
+## Install
 
-```powershell
-dotnet restore
-dotnet build .\NextGenIsland.csproj -c Release
-dotnet run --project .\NextGenIsland.csproj
-```
+Download `NextGenIsland-Setup.exe` or the `NextGenIsland-win-x64.zip` from the
+[Releases](../../releases) page. The Web tab needs the Microsoft WebView2 Runtime, which ships with
+Windows 11 and recent Windows 10.
 
-## Publish locally
-```powershell
-dotnet publish .\NextGenIsland.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true
-```
+## Build from source
 
-## Push to GitHub
-Create an empty GitHub repository, then run in this folder:
+Requires Windows 10/11 and the .NET 8 SDK.
 
 ```powershell
-git init
-git add .
-git commit -m "Initial NextGen Island app"
-git branch -M main
-git remote add origin https://github.com/YOUR_USERNAME/NextGenIsland.git
-git push -u origin main
-git tag v0.1.0
-git push origin v0.1.0
+dotnet build -c Release
+dotnet run -c Release
 ```
 
-Pushing a `v*` tag triggers `.github/workflows/windows-release.yml` and publishes a self-contained Windows x64 ZIP to GitHub Releases.
+## Make a release
+
+```powershell
+.\publish.ps1              # self-contained build and zip in .\artifacts
+.\publish.ps1 -Installer   # also builds NextGenIsland-Setup.exe (needs Inno Setup 6)
+```
+
+Pushing a tag such as `v1.0.0` also builds and publishes the zip to GitHub Releases through
+`.github/workflows/windows-release.yml`.
 
 ## Data and privacy
-Local DB: `%LOCALAPPDATA%\NextGenIsland\clipboard.db`. No cloud upload or telemetry. Clipboard may contain secrets; pause monitoring before copying sensitive content. Removing the app does not remove the database. To erase it, delete the `NextGenIsland` folder under `%LOCALAPPDATA%`.
 
-MIT license.
+Everything stays on your PC under `%LOCALAPPDATA%\NextGenIsland`: clipboard history (`clipboard.db` and the
+`clips` folder), settings, shelf and reminders, and the web drawer's browser profile. The only network calls are
+for weather (Open-Meteo), lyrics (LRCLIB) and the pages you open in the Web tab. There is no telemetry.
+Clipboard history can contain passwords, so use "Pause clipboard history" in Settings before copying secrets.
+Uninstalling does not delete this folder.
+
+## Not included
+
+Phone transfer, global volume, brightness, Wi-Fi and Bluetooth controls, gaming overlay and stream tools.
+
+## License
+
+MIT

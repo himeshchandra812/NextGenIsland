@@ -271,7 +271,6 @@ public partial class MainWindow : Window
         Dispatcher.InvokeAsync(() =>
         {
             int count = _notificationService.History.Count;
-            NotificationCountText.Text = count > 0 ? $"{count} ITEMS" : "0 NEW";
             SetBadge(count > 0);
 
             RenderNotifications();

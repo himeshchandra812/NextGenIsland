@@ -59,10 +59,32 @@ public partial class MainWindow
     private void RenderNotifications()
     {
         var all = _notificationService.History;
+        _notifOffset = Math.Max(0, Math.Min(_notifOffset, Math.Max(0, all.Count - NotifPageSize)));
         NotifList.Children.Clear();
-        foreach (var n in all.Take(3)) NotifList.Children.Add(MakeNotifRow(n));
+        foreach (var n in all.Skip(_notifOffset).Take(NotifPageSize)) NotifList.Children.Add(MakeNotifRow(n));
         NotifEmptyText.Visibility = all.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
-        NotificationCountText.Text = all.Count == 1 ? "1 notice" : all.Count + " notices";
+
+        if (all.Count == 0) NotificationCountText.Text = "No notices";
+        else if (all.Count <= NotifPageSize) NotificationCountText.Text = all.Count == 1 ? "1 notice" : all.Count + " notices";
+        else
+        {
+            int last = Math.Min(all.Count, _notifOffset + NotifPageSize);
+            NotificationCountText.Text = $"{_notifOffset + 1}\u2013{last} of {all.Count}"
+                + (last < all.Count ? " \u2022 scroll" : "");
+        }
+    }
+
+    private const int NotifPageSize = 3;
+    private int _notifOffset;
+
+    // Mouse wheel pages through the history, one notice at a time.
+    private void NotifArea_MouseWheel(object sender, MouseWheelEventArgs e)
+    {
+        int total = _notificationService.History.Count;
+        if (total <= NotifPageSize) return;
+        int next = Math.Max(0, Math.Min(total - NotifPageSize, _notifOffset + (e.Delta < 0 ? 1 : -1)));
+        if (next != _notifOffset) { _notifOffset = next; RenderNotifications(); }
+        e.Handled = true;
     }
 
     private UIElement MakeNotifRow(IslandNotification n)
@@ -434,7 +456,7 @@ public partial class MainWindow
                 Color.FromArgb(0x58, tint.R, tint.G, tint.B), Color.FromArgb(0x14, tint.R, tint.G, tint.B), 0.0),
             Child = grid
         };
-        tile.MouseLeftButtonUp += (_, _) => OpenUrl(site.Url);
+        tile.MouseLeftButtonUp += (_, _) => OpenWebDrawer(site);
 
         var menu = new ContextMenu();
         var remove = new MenuItem { Header = "Remove" };
@@ -445,6 +467,9 @@ public partial class MainWindow
             RenderWeb();
             ResizeForView();
         };
+        var external = new MenuItem { Header = "Open in browser" };
+        external.Click += (_, _) => OpenUrl(site.Url);
+        menu.Items.Add(external);
         menu.Items.Add(remove);
         tile.ContextMenu = menu;
         return tile;
@@ -473,10 +498,36 @@ public partial class MainWindow
         return g;
     }
 
+    private WebDrawerWindow? _webDrawer;
+
+    // Opens the site in the drawer window under the island (see WebDrawerWindow).
+    private void OpenWebDrawer(SiteItem site)
+    {
+        try
+        {
+            if (_webDrawer != null)
+            {
+                _webDrawer.Navigate(site.Url, site.Name);
+                _webDrawer.Activate();
+                return;
+            }
+            double top = Top + _topGap + IslandContainer.ActualHeight + 8;
+            _webDrawer = new WebDrawerWindow(site.Url, site.Name, top);
+            _webDrawer.Closed += (_, _) => _webDrawer = null;
+            _webDrawer.Show();
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine("OpenWebDrawer: " + ex.Message);
+            _webDrawer = null;
+            OpenUrl(site.Url);
+        }
+    }
+
     private void ToggleWebAdd(bool show)
     {
         WebAddRow.Visibility = show ? Visibility.Visible : Visibility.Collapsed;
-        WebHintText.Text = "Add any page. Right-click a site to remove it.";
+        WebHintText.Text = "Click a site to open it here. Right-click for more.";
         if (show) { WebUrlInput.Clear(); WebUrlInput.Focus(); }
         ResizeForView();
     }

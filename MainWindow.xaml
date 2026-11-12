@@ -511,7 +511,7 @@
                                 <RowDefinition Height="Auto"/>
                                 <RowDefinition Height="Auto"/>
                             </Grid.RowDefinitions>
-                            <Grid>
+                            <Grid Background="Transparent" MouseWheel="NotifArea_MouseWheel">
                                 <TextBlock x:Name="NotifEmptyText" Text="No notifications" Foreground="#80FFFFFF" FontSize="12"
                                            HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                 <StackPanel x:Name="NotifList" VerticalAlignment="Top"/>
@@ -909,7 +909,7 @@
                                 <Button Grid.Column="1" Style="{StaticResource GlassPill}" Content="Add" Padding="14,6" Margin="6,0,0,0" Click="WebAdd_Click"/>
                                 <Button Grid.Column="2" Style="{StaticResource GlassPill}" Content="Cancel" Padding="12,6" Margin="6,0,0,0" Click="WebCancel_Click"/>
                             </Grid>
-                            <TextBlock x:Name="WebHintText" Grid.Row="2" Text="Add any page. Right-click a site to remove it."
+                            <TextBlock x:Name="WebHintText" Grid.Row="2" Text="Click a site to open it here. Right-click for more."
                                        Foreground="#80FFFFFF" FontSize="10.5" Margin="2,0,0,0" TextTrimming="CharacterEllipsis"/>
                         </Grid>
 
