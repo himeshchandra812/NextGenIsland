@@ -52,7 +52,7 @@ public partial class MainWindow
     // The line sits right on the screen edge with no shadow; every other state uses the normal gap and shadow.
     private void ApplyLineLook()
     {
-        bool line = _fullscreen && !_expanded;
+        bool line = _fullscreen && !_expanded && !_hudActive;
         _islandShadow ??= IslandContainer.Effect;
         IslandContainer.Effect = line ? null : _islandShadow;
         IslandContainer.Margin = new Thickness(0, line ? 0.0 : _topGap, 0, 0);

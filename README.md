@@ -11,6 +11,7 @@ showing CPU load and temperature; hover to expand it into ten tabs. Inspired by 
 | Notifications | Banners on the pill, history (3 at a time, scroll the mouse wheel for more), quiet mode, clear all |
 | Clipboard | Searchable history of text, images and files, pin and filter, click to copy back |
 | System | CPU, RAM, GPU (load, temperature, VRAM), battery and network speed |
+| Utility | Brightness and volume sliders, Wi-Fi, Bluetooth, mute and quiet tiles, battery, Windows power mode |
 | Shelf | Drop files on the island to park them, click to open, drag out to copy |
 | Reminders | Quick reminders with times and repeats |
 | Agents | Shows whether Claude, Codex, Antigravity or Hermes processes are running |
@@ -21,6 +22,7 @@ showing CPU load and temperature; hover to expand it into ten tabs. Inspired by 
 Also:
 - **Shapes:** Pill (default) or Notch.
 - **Themes:** Liquid Glass, Wallpaper (tinted from your desktop wallpaper), Black, Graphite, Acrylic.
+- **Key pop-up:** pressing the volume or brightness keys shows a slider on the island (can be turned off in Settings).
 - **Full-screen apps:** the island shrinks to a thin line while a full-screen app is in front.
 - **Settings:** show or hide tabs, start with Windows, weather city, shape and theme. Tray icon included.
 
@@ -59,7 +61,7 @@ Uninstalling does not delete this folder.
 
 ## Not included
 
-Phone transfer, global volume, brightness, Wi-Fi and Bluetooth controls, gaming overlay and stream tools.
+Phone transfer, night light, Focus assist toggles, gaming overlay and stream tools.
 
 ## License
 

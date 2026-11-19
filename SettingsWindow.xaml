@@ -238,6 +238,14 @@
                                 </DockPanel>
                                 <Border Style="{StaticResource Divider}"/>
                                 <DockPanel Style="{StaticResource Row}">
+                                    <CheckBox x:Name="ShowKeyHud" DockPanel.Dock="Right" VerticalAlignment="Center"/>
+                                    <StackPanel VerticalAlignment="Center" Margin="0,0,14,0">
+                                        <TextBlock Text="Volume and brightness pop-up" Style="{StaticResource RowTitle}"/>
+                                        <TextBlock Text="Show a slider on the island when you change volume or brightness with the keyboard keys." Style="{StaticResource RowHint}"/>
+                                    </StackPanel>
+                                </DockPanel>
+                                <Border Style="{StaticResource Divider}"/>
+                                <DockPanel Style="{StaticResource Row}">
                                     <CheckBox x:Name="PauseClipboard" DockPanel.Dock="Right" VerticalAlignment="Center"/>
                                     <StackPanel VerticalAlignment="Center" Margin="0,0,14,0">
                                         <TextBlock Text="Pause clipboard history" Style="{StaticResource RowTitle}"/>

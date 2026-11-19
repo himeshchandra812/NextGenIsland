@@ -44,6 +44,10 @@ public static class IslandCardCatalog
                 "Calendar, focus timer, weather and CPU/RAM stats.",
                 IslandCardCategory.Productivity, 80, IslandCardStatus.Partial, true),
 
+            new IslandCardDefinition("utility.controls", "Utility",
+                "Brightness and volume sliders, Wi-Fi, Bluetooth, mute, quiet mode and power mode.",
+                IslandCardCategory.Connectivity, 45, IslandCardStatus.Available, true),
+
             new IslandCardDefinition("web.drawer", "Web Drawer",
                 "Pinned sites that open in your default browser.",
                 IslandCardCategory.Productivity, 90, IslandCardStatus.Partial, true),

@@ -20,7 +20,7 @@ public partial class MainWindow
 {
     private static readonly Dictionary<string, double> ViewHeights = new()
     {
-        ["Media"] = 178, ["Notifications"] = 214, ["Clipboard"] = 190, ["System"] = 140, ["Shelf"] = 176,
+        ["Media"] = 178, ["Notifications"] = 214, ["Clipboard"] = 190, ["System"] = 140, ["Utility"] = 222, ["Shelf"] = 176,
         ["Reminders"] = 196, ["Agents"] = 188, ["Widgets"] = 232, ["Web"] = 196, ["Calls"] = 190,
     };
 

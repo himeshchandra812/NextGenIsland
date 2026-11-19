@@ -21,7 +21,7 @@ public partial class MainWindow : Window
     private const double ShadowPad = 14;
     private const double NavSlot = 28;
 
-    private static readonly string[] ModuleKeys = { "Media", "Notifications", "Clipboard", "System", "Shelf", "Reminders", "Agents", "Widgets", "Web", "Calls" };
+    private static readonly string[] ModuleKeys = { "Media", "Notifications", "Clipboard", "System", "Utility", "Shelf", "Reminders", "Agents", "Widgets", "Web", "Calls" };
 
     private readonly ClipboardStore _store = new();
     private readonly SystemMonitorService _monitor = new();
@@ -323,6 +323,7 @@ public partial class MainWindow : Window
         QuietModeBtn.Foreground = _settings.QuietMode
             ? new SolidColorBrush(Color.FromRgb(255, 159, 10))
             : Brushes.White;
+        UpdateQuietTile();
     }
 
     private void OpenWindowsNotificationSettings_Click(object sender, RoutedEventArgs e)
@@ -586,6 +587,9 @@ public partial class MainWindow : Window
 
         if (expand)
         {
+            _hudActive = false;
+            _hudTimer.Stop();
+            HudBanner.Visibility = Visibility.Collapsed;
             NotificationBanner.Visibility = Visibility.Collapsed;
             SyncExpandedHeight();
 
@@ -613,6 +617,17 @@ public partial class MainWindow : Window
     private void ShowCollapsedState()
     {
         ApplyLineLook();
+        if (_hudActive)
+        {
+            // Volume / brightness pop-up (also shown over a full-screen app).
+            CompactHeader.Visibility = Visibility.Collapsed;
+            NotificationBanner.Visibility = Visibility.Collapsed;
+            HudBanner.Visibility = Visibility.Visible;
+            AnimateIsland(HudWidth, HudHeight);
+            return;
+        }
+        HudBanner.Visibility = Visibility.Collapsed;
+
         if (_fullscreen)
         {
             // Full-screen app in front: just a thin line (banners wait in the history).
@@ -738,6 +753,7 @@ public partial class MainWindow : Window
         _source?.RemoveHook(WndProc);
         _tray?.Dispose();
         _gpuMonitor.Dispose();
+        _devices.Dispose();
         _mediaService.Dispose();
         _notificationService.Dispose();
         Application.Current.Shutdown();

@@ -20,6 +20,7 @@ public partial class MainWindow
         ["Notifications"] = "system.notifications",
         ["Clipboard"] = "productivity.clipboard",
         ["System"] = "system.monitor",
+        ["Utility"] = "utility.controls",
         ["Shelf"] = "productivity.file-shelf",
         ["Reminders"] = "productivity.reminders",
         ["Agents"] = "developer.ai-agents",
@@ -50,20 +51,20 @@ public partial class MainWindow
     private IslandPalette _albumPalette = AlbumPalette.Fallback;
 
     // True while something inside the island needs it to stay open.
-    private bool ModuleBusy => _dragOver || _dragOut || ReminderInput.IsKeyboardFocusWithin || WebUrlInput.IsKeyboardFocusWithin || _spkTesting || _meter != null;
+    private bool ModuleBusy => _dragOver || _dragOut || ReminderInput.IsKeyboardFocusWithin || WebUrlInput.IsKeyboardFocusWithin || _spkTesting || _meter != null || _sliderDrag;
 
     private void InitModules()
     {
         _views = new Dictionary<string, Grid>
         {
             ["Media"] = ViewMedia, ["Notifications"] = ViewNotifications, ["Clipboard"] = ViewClipboard,
-            ["System"] = ViewSystem, ["Shelf"] = ViewShelf, ["Reminders"] = ViewReminders,
+            ["System"] = ViewSystem, ["Utility"] = ViewUtility, ["Shelf"] = ViewShelf, ["Reminders"] = ViewReminders,
             ["Agents"] = ViewAgents, ["Widgets"] = ViewWidgets, ["Web"] = ViewWeb, ["Calls"] = ViewCalls,
         };
         _navButtons = new Dictionary<string, RadioButton>
         {
             ["Media"] = NavMedia, ["Notifications"] = NavNotifications, ["Clipboard"] = NavClipboard,
-            ["System"] = NavSystem, ["Shelf"] = NavShelf, ["Reminders"] = NavReminders,
+            ["System"] = NavSystem, ["Utility"] = NavUtility, ["Shelf"] = NavShelf, ["Reminders"] = NavReminders,
             ["Agents"] = NavAgents, ["Widgets"] = NavWidgets, ["Web"] = NavWeb, ["Calls"] = NavCalls,
         };
 
@@ -75,6 +76,7 @@ public partial class MainWindow
         ApplyPalette(EffectivePalette());
         ApplyShape();
         UpdateLyricsIcon();
+        InitUtility();
     }
 
     private bool IsModuleEnabled(string key)
@@ -182,6 +184,7 @@ public partial class MainWindow
             case "Agents": _ = RefreshAgentsAsync(); break;
             case "Widgets": UpdateWidgetClock(); _ = RefreshWeatherAsync(); break;
             case "Calls": LoadCallDevices(); UpdateMicUi(); break;
+            case "Utility": _ = RefreshUtilityAsync(); break;
         }
     }
 
@@ -190,6 +193,8 @@ public partial class MainWindow
         _tick++;
         SampleStats();
         CheckReminders();
+        if (_tick % 3 == 0) _devices.Poll();
+        if (ViewUtility.Visibility == Visibility.Visible && _tick % 2 == 0 && !_sliderDrag) _ = RefreshUtilityAsync();
         if (ViewNotifications.Visibility == Visibility.Visible && _tick % 15 == 0) RenderNotifications();
         if (ViewWidgets.Visibility == Visibility.Visible) UpdateWidgetClock();
         if (ViewAgents.Visibility == Visibility.Visible && _tick % 4 == 0) _ = RefreshAgentsAsync();

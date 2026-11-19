@@ -20,6 +20,7 @@ public partial class SettingsWindow : Window
         PauseClipboard.IsChecked = s.ClipboardPaused;
         StartWithWindows.IsChecked = s.StartWithWindows;
         ShrinkInFullscreen.IsChecked = s.ShrinkInFullscreen;
+        ShowKeyHud.IsChecked = s.ShowKeyHud;
 
         // Notifications
         EnableNotifications.IsChecked = s.NotificationsEnabled;
@@ -217,6 +218,7 @@ public partial class SettingsWindow : Window
         settings.ClipboardPaused = PauseClipboard.IsChecked == true;
         settings.StartWithWindows = StartWithWindows.IsChecked == true;
         settings.ShrinkInFullscreen = ShrinkInFullscreen.IsChecked == true;
+        settings.ShowKeyHud = ShowKeyHud.IsChecked == true;
         settings.NotificationsEnabled = EnableNotifications.IsChecked == true;
         settings.QuietMode = QuietModeToggle.IsChecked == true;
         settings.NotificationDurationSeconds = GetSelectedDuration();

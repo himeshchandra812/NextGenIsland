@@ -180,6 +180,31 @@
         </Style>
 
 
+        <Style x:Key="UtilTile" TargetType="Border">
+            <Setter Property="CornerRadius" Value="16"/>
+            <Setter Property="Background" Value="#1FFFFFFF"/>
+            <Setter Property="Padding" Value="12,0"/>
+            <Setter Property="Margin" Value="0,0,6,6"/>
+            <Setter Property="Cursor" Value="Hand"/>
+        </Style>
+
+        <Style x:Key="SegButton" TargetType="Button">
+            <Setter Property="Foreground" Value="#CCFFFFFF"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="FontSize" Value="11.5"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" CornerRadius="13" Margin="2">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
         <!-- Icon geometries (24x24 grid) -->
         <Geometry x:Key="IconMusic">M9,17.5 L9,5.5 L19,3.5 L19,15.5 M9,17.5 A2.5,2.5 0 1 1 4,17.5 A2.5,2.5 0 1 1 9,17.5 M19,15.5 A2.5,2.5 0 1 1 14,15.5 A2.5,2.5 0 1 1 19,15.5</Geometry>
         <Geometry x:Key="IconBell">M6,10 A6,6 0 0 1 18,10 C18,14.5 20,15.5 20,17 L4,17 C4,15.5 6,14.5 6,10 Z M10,20.5 A2,2 0 0 0 14,20.5</Geometry>
@@ -191,6 +216,7 @@
         <Geometry x:Key="IconWidgets">M4,4 L10,4 L10,10 L4,10 Z M14,4 L20,4 L20,10 L14,10 Z M4,14 L10,14 L10,20 L4,20 Z M14,14 L20,14 L20,20 L14,20 Z</Geometry>
         <Geometry x:Key="IconGlobe">M12,3 A9,9 0 1 1 12,21 A9,9 0 1 1 12,3 Z M3,12 L21,12 M12,3 C8,7.5 8,16.5 12,21 C16,16.5 16,7.5 12,3</Geometry>
         <Geometry x:Key="IconDrop">M12,3 C12,3 5.5,10 5.5,14.5 A6.5,6.5 0 0 0 18.5,14.5 C18.5,10 12,3 12,3 Z</Geometry>
+        <Geometry x:Key="IconSliders">M4,7 L20,7 M4,12 L20,12 M4,17 L20,17 M9,4.5 L9,9.5 M15,9.5 L15,14.5 M8,14.5 L8,19.5</Geometry>
         <Geometry x:Key="IconMic">M12,3.5 A3,3 0 0 1 15,6.5 L15,12 A3,3 0 0 1 9,12 L9,6.5 A3,3 0 0 1 12,3.5 Z M6.5,11 A5.5,5.5 0 0 0 17.5,11 M12,16.5 L12,20.5 M9,20.5 L15,20.5</Geometry>
 
         <!-- Stroke icon; colour follows the Foreground of the hosting control -->
@@ -318,6 +344,23 @@
                              IsHitTestVisible="False" Visibility="Collapsed"/>
                 </Grid>
 
+                <!-- Collapsed: volume / brightness pop-up -->
+                <Grid x:Name="HudBanner" VerticalAlignment="Top" Height="46" Margin="18,0,18,0" Visibility="Collapsed" IsHitTestVisible="False">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="26"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="46"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock x:Name="HudIcon" Text="&#xE767;" FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets" FontSize="16"
+                               Foreground="White" VerticalAlignment="Center" HorizontalAlignment="Left"/>
+                    <Border x:Name="HudTrack" Grid.Column="1" Width="150" Height="6" CornerRadius="3" Background="#33FFFFFF"
+                            VerticalAlignment="Center" HorizontalAlignment="Center" ClipToBounds="True">
+                        <Border x:Name="HudFill" Width="0" HorizontalAlignment="Left" CornerRadius="3" Background="White"/>
+                    </Border>
+                    <TextBlock x:Name="HudPct" Grid.Column="2" Text="--" Foreground="White" FontSize="12" FontWeight="SemiBold"
+                               VerticalAlignment="Center" HorizontalAlignment="Right"/>
+                </Grid>
+
                 <!-- Collapsed: incoming notification banner -->
                 <Grid x:Name="NotificationBanner" VerticalAlignment="Top" Height="66" Margin="18,0,14,0"
                       Visibility="Collapsed" Cursor="Hand" Background="Transparent"
@@ -374,6 +417,9 @@
                                 <RadioButton x:Name="NavSystem" GroupName="IslandNav" Tag="System"
                                              Style="{StaticResource NavButton}" ToolTip="System monitor"
                                              Checked="Nav_Checked"><Viewbox Width="14" Height="14" HorizontalAlignment="Center" VerticalAlignment="Center"><Canvas Width="24" Height="24"><Path Style="{StaticResource IconPath}" Data="{StaticResource IconSystem}"/></Canvas></Viewbox></RadioButton>
+                                <RadioButton x:Name="NavUtility" GroupName="IslandNav" Tag="Utility"
+                                             Style="{StaticResource NavButton}" ToolTip="Utility"
+                                             Checked="Nav_Checked"><Viewbox Width="14" Height="14" HorizontalAlignment="Center" VerticalAlignment="Center"><Canvas Width="24" Height="24"><Path Style="{StaticResource IconPath}" Data="{StaticResource IconSliders}"/></Canvas></Viewbox></RadioButton>
                                 <RadioButton x:Name="NavShelf" GroupName="IslandNav" Tag="Shelf"
                                              Style="{StaticResource NavButton}" ToolTip="File shelf"
                                              Checked="Nav_Checked"><Viewbox Width="14" Height="14" HorizontalAlignment="Center" VerticalAlignment="Center"><Canvas Width="24" Height="24"><Path Style="{StaticResource IconPath}" Data="{StaticResource IconShelf}"/></Canvas></Viewbox></RadioButton>
@@ -653,6 +699,113 @@
                                 </StackPanel>
                                 <WrapPanel x:Name="ShelfPanel" Margin="12,10,12,4" VerticalAlignment="Top"/>
                             </Grid>
+                        </Grid>
+
+                        <!-- UTILITY -->
+                        <Grid x:Name="ViewUtility" Visibility="Collapsed">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="132"/>
+                                <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+
+                                <Border x:Name="BrightnessTrack" Width="66" Height="132" Tag="Brightness" Margin="0,0,8,0"
+                                        CornerRadius="20" Background="#26FFFFFF" Cursor="Hand" ToolTip="Brightness"
+                                        MouseLeftButtonDown="Slider_Down" MouseMove="Slider_Move" MouseLeftButtonUp="Slider_Up">
+                                    <Grid>
+                                        <Border x:Name="BrightnessFill" VerticalAlignment="Bottom" Height="0" Background="#F2F2F2" IsHitTestVisible="False"/>
+                                        <TextBlock x:Name="BrightnessPct" Text="--" VerticalAlignment="Top" HorizontalAlignment="Center" Margin="0,10,0,0"
+                                                   FontSize="11.5" FontWeight="SemiBold" Foreground="White" IsHitTestVisible="False"/>
+                                        <TextBlock x:Name="BrightnessIcon" Text="&#xE706;" FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
+                                                   VerticalAlignment="Bottom" HorizontalAlignment="Center" Margin="0,0,0,12"
+                                                   FontSize="17" Foreground="White" IsHitTestVisible="False"/>
+                                    </Grid>
+                                </Border>
+
+                                <Border x:Name="VolumeTrack" Grid.Column="1" Width="66" Height="132" Tag="Volume" Margin="0,0,12,0"
+                                        CornerRadius="20" Background="#26FFFFFF" Cursor="Hand" ToolTip="Volume"
+                                        MouseLeftButtonDown="Slider_Down" MouseMove="Slider_Move" MouseLeftButtonUp="Slider_Up">
+                                    <Grid>
+                                        <Border x:Name="VolumeFill" VerticalAlignment="Bottom" Height="0" Background="#F2F2F2" IsHitTestVisible="False"/>
+                                        <TextBlock x:Name="VolumePct" Text="--" VerticalAlignment="Top" HorizontalAlignment="Center" Margin="0,10,0,0"
+                                                   FontSize="11.5" FontWeight="SemiBold" Foreground="White" IsHitTestVisible="False"/>
+                                        <TextBlock x:Name="VolumeIcon" Text="&#xE767;" FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
+                                                   VerticalAlignment="Bottom" HorizontalAlignment="Center" Margin="0,0,0,12"
+                                                   FontSize="17" Foreground="White" IsHitTestVisible="False"/>
+                                    </Grid>
+                                </Border>
+
+                                <Grid Grid.Column="2" Margin="0,0,-6,-6">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="*"/>
+                                        <RowDefinition Height="*"/>
+                                    </Grid.RowDefinitions>
+
+                                    <Border x:Name="WifiTile" Style="{StaticResource UtilTile}" Tag="Wifi" ToolTip="Turn Wi-Fi on or off"
+                                            MouseLeftButtonUp="UtilityTile_Click">
+                                        <StackPanel VerticalAlignment="Center">
+                                            <TextBlock Text="&#xE701;" FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets" FontSize="15" Foreground="White"/>
+                                            <TextBlock Text="Wi-Fi" Foreground="White" FontSize="11" FontWeight="SemiBold" Margin="0,5,0,0"/>
+                                            <TextBlock x:Name="WifiState" Text="--" Foreground="#B3FFFFFF" FontSize="10"/>
+                                        </StackPanel>
+                                    </Border>
+                                    <Border x:Name="BluetoothTile" Grid.Column="1" Style="{StaticResource UtilTile}" Tag="Bluetooth" ToolTip="Turn Bluetooth on or off"
+                                            MouseLeftButtonUp="UtilityTile_Click">
+                                        <StackPanel VerticalAlignment="Center">
+                                            <TextBlock Text="&#xE702;" FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets" FontSize="15" Foreground="White"/>
+                                            <TextBlock Text="Bluetooth" Foreground="White" FontSize="11" FontWeight="SemiBold" Margin="0,5,0,0"/>
+                                            <TextBlock x:Name="BluetoothState" Text="--" Foreground="#B3FFFFFF" FontSize="10"/>
+                                        </StackPanel>
+                                    </Border>
+                                    <Border x:Name="MuteTile" Grid.Column="2" Style="{StaticResource UtilTile}" Tag="Mute" ToolTip="Mute or unmute the speakers"
+                                            MouseLeftButtonUp="UtilityTile_Click">
+                                        <StackPanel VerticalAlignment="Center">
+                                            <TextBlock Text="&#xE74F;" FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets" FontSize="15" Foreground="White"/>
+                                            <TextBlock Text="Mute" Foreground="White" FontSize="11" FontWeight="SemiBold" Margin="0,5,0,0"/>
+                                            <TextBlock x:Name="MuteState" Text="--" Foreground="#B3FFFFFF" FontSize="10"/>
+                                        </StackPanel>
+                                    </Border>
+                                    <Border x:Name="QuietTile" Grid.Row="1" Style="{StaticResource UtilTile}" Tag="Quiet" ToolTip="Hold back notification banners"
+                                            MouseLeftButtonUp="UtilityTile_Click">
+                                        <StackPanel VerticalAlignment="Center">
+                                            <TextBlock Text="&#xE708;" FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets" FontSize="15" Foreground="White"/>
+                                            <TextBlock Text="Quiet" Foreground="White" FontSize="11" FontWeight="SemiBold" Margin="0,5,0,0"/>
+                                            <TextBlock x:Name="QuietState" Text="--" Foreground="#B3FFFFFF" FontSize="10"/>
+                                        </StackPanel>
+                                    </Border>
+                                    <Border x:Name="BatteryTile" Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" Style="{StaticResource UtilTile}" Cursor="Arrow">
+                                        <DockPanel VerticalAlignment="Center">
+                                            <TextBlock Text="&#xE83F;" DockPanel.Dock="Left" FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
+                                                       FontSize="20" Foreground="#FFD60A" VerticalAlignment="Center" Margin="0,0,12,0"/>
+                                            <StackPanel VerticalAlignment="Center">
+                                                <TextBlock x:Name="BatteryValue" Text="--" Foreground="White" FontSize="14" FontWeight="Bold"/>
+                                                <TextBlock x:Name="BatteryState" Text="" Foreground="#B3FFFFFF" FontSize="10"/>
+                                            </StackPanel>
+                                        </DockPanel>
+                                    </Border>
+                                </Grid>
+                            </Grid>
+
+                            <Border Grid.Row="1" Height="30" VerticalAlignment="Bottom" CornerRadius="15" Background="#1FFFFFFF">
+                                <UniformGrid Columns="3">
+                                    <Button x:Name="PowerEco" Style="{StaticResource SegButton}" Content="Battery" Tag="Efficiency"
+                                            ToolTip="Best power efficiency" Click="PowerMode_Click"/>
+                                    <Button x:Name="PowerBalanced" Style="{StaticResource SegButton}" Content="Balanced" Tag="Balanced"
+                                            ToolTip="Balanced" Click="PowerMode_Click"/>
+                                    <Button x:Name="PowerPerf" Style="{StaticResource SegButton}" Content="Performance" Tag="Performance"
+                                            ToolTip="Best performance" Click="PowerMode_Click"/>
+                                </UniformGrid>
+                            </Border>
                         </Grid>
 
                         <!-- REMINDERS -->
