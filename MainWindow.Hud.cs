@@ -47,7 +47,7 @@ public partial class MainWindow
         _hudTimer.Stop();
         if (!_hudActive) return;
         _hudActive = false;
-        HudBanner.Visibility = Visibility.Collapsed;
         if (!_expanded) ShowCollapsedState();
+        else Present(HudBanner, false);
     }
 }

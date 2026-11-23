@@ -50,15 +50,31 @@
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
-                        <Border x:Name="Bg" CornerRadius="16" Background="Transparent">
-                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        <Border x:Name="Bg" CornerRadius="16" Background="Transparent" RenderTransformOrigin="0.5,0.5">
+                            <Border.RenderTransform><ScaleTransform x:Name="Sc"/></Border.RenderTransform>
+                            <Grid>
+                                <Border x:Name="Hov" CornerRadius="16" Background="#26FFFFFF" Opacity="0"/>
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Grid>
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="Bg" Property="Background" Value="#1FFFFFFF"/>
+                                <Trigger.EnterActions><BeginStoryboard><Storyboard>
+                                    <DoubleAnimation Storyboard.TargetName="Hov" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.14"/>
+                                </Storyboard></BeginStoryboard></Trigger.EnterActions>
+                                <Trigger.ExitActions><BeginStoryboard><Storyboard>
+                                    <DoubleAnimation Storyboard.TargetName="Hov" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.22"/>
+                                </Storyboard></BeginStoryboard></Trigger.ExitActions>
                             </Trigger>
                             <Trigger Property="IsPressed" Value="True">
-                                <Setter TargetName="Bg" Property="Background" Value="#33FFFFFF"/>
+                                <Trigger.EnterActions><BeginStoryboard><Storyboard>
+                                    <DoubleAnimation Storyboard.TargetName="Sc" Storyboard.TargetProperty="ScaleX" To="0.9" Duration="0:0:0.08"/>
+                                    <DoubleAnimation Storyboard.TargetName="Sc" Storyboard.TargetProperty="ScaleY" To="0.9" Duration="0:0:0.08"/>
+                                </Storyboard></BeginStoryboard></Trigger.EnterActions>
+                                <Trigger.ExitActions><BeginStoryboard><Storyboard>
+                                    <DoubleAnimation Storyboard.TargetName="Sc" Storyboard.TargetProperty="ScaleX" To="1" Duration="0:0:0.22"><DoubleAnimation.EasingFunction><BackEase Amplitude="0.5" EasingMode="EaseOut"/></DoubleAnimation.EasingFunction></DoubleAnimation>
+                                    <DoubleAnimation Storyboard.TargetName="Sc" Storyboard.TargetProperty="ScaleY" To="1" Duration="0:0:0.22"><DoubleAnimation.EasingFunction><BackEase Amplitude="0.5" EasingMode="EaseOut"/></DoubleAnimation.EasingFunction></DoubleAnimation>
+                                </Storyboard></BeginStoryboard></Trigger.ExitActions>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -78,15 +94,31 @@
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
-                        <Border x:Name="Bg" CornerRadius="20" Background="Transparent">
-                            <ContentPresenter x:Name="Glyph" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        <Border x:Name="Bg" CornerRadius="20" Background="Transparent" RenderTransformOrigin="0.5,0.5">
+                            <Border.RenderTransform><ScaleTransform x:Name="Sc"/></Border.RenderTransform>
+                            <Grid>
+                                <Border x:Name="Hov" CornerRadius="20" Background="#1FFFFFFF" Opacity="0"/>
+                                <ContentPresenter x:Name="Glyph" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Grid>
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="Bg" Property="Background" Value="#1AFFFFFF"/>
+                                <Trigger.EnterActions><BeginStoryboard><Storyboard>
+                                    <DoubleAnimation Storyboard.TargetName="Hov" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.14"/>
+                                </Storyboard></BeginStoryboard></Trigger.EnterActions>
+                                <Trigger.ExitActions><BeginStoryboard><Storyboard>
+                                    <DoubleAnimation Storyboard.TargetName="Hov" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.22"/>
+                                </Storyboard></BeginStoryboard></Trigger.ExitActions>
                             </Trigger>
                             <Trigger Property="IsPressed" Value="True">
-                                <Setter TargetName="Glyph" Property="Opacity" Value="0.6"/>
+                                <Trigger.EnterActions><BeginStoryboard><Storyboard>
+                                    <DoubleAnimation Storyboard.TargetName="Sc" Storyboard.TargetProperty="ScaleX" To="0.88" Duration="0:0:0.08"/>
+                                    <DoubleAnimation Storyboard.TargetName="Sc" Storyboard.TargetProperty="ScaleY" To="0.88" Duration="0:0:0.08"/>
+                                </Storyboard></BeginStoryboard></Trigger.EnterActions>
+                                <Trigger.ExitActions><BeginStoryboard><Storyboard>
+                                    <DoubleAnimation Storyboard.TargetName="Sc" Storyboard.TargetProperty="ScaleX" To="1" Duration="0:0:0.22"><DoubleAnimation.EasingFunction><BackEase Amplitude="0.5" EasingMode="EaseOut"/></DoubleAnimation.EasingFunction></DoubleAnimation>
+                                    <DoubleAnimation Storyboard.TargetName="Sc" Storyboard.TargetProperty="ScaleY" To="1" Duration="0:0:0.22"><DoubleAnimation.EasingFunction><BackEase Amplitude="0.5" EasingMode="EaseOut"/></DoubleAnimation.EasingFunction></DoubleAnimation>
+                                </Storyboard></BeginStoryboard></Trigger.ExitActions>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -163,15 +195,31 @@
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
                         <Border x:Name="Bg" CornerRadius="10" Background="{TemplateBinding Background}"
-                                Padding="{TemplateBinding Padding}">
-                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                RenderTransformOrigin="0.5,0.5">
+                            <Border.RenderTransform><ScaleTransform x:Name="Sc"/></Border.RenderTransform>
+                            <Grid>
+                                <Border x:Name="Hov" CornerRadius="10" Background="#26FFFFFF" Opacity="0" IsHitTestVisible="False"/>
+                                <ContentPresenter Margin="{TemplateBinding Padding}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Grid>
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="Bg" Property="Background" Value="#38FFFFFF"/>
+                                <Trigger.EnterActions><BeginStoryboard><Storyboard>
+                                    <DoubleAnimation Storyboard.TargetName="Hov" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.14"/>
+                                </Storyboard></BeginStoryboard></Trigger.EnterActions>
+                                <Trigger.ExitActions><BeginStoryboard><Storyboard>
+                                    <DoubleAnimation Storyboard.TargetName="Hov" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.22"/>
+                                </Storyboard></BeginStoryboard></Trigger.ExitActions>
                             </Trigger>
                             <Trigger Property="IsPressed" Value="True">
-                                <Setter TargetName="Bg" Property="Background" Value="#4DFFFFFF"/>
+                                <Trigger.EnterActions><BeginStoryboard><Storyboard>
+                                    <DoubleAnimation Storyboard.TargetName="Sc" Storyboard.TargetProperty="ScaleX" To="0.94" Duration="0:0:0.08"/>
+                                    <DoubleAnimation Storyboard.TargetName="Sc" Storyboard.TargetProperty="ScaleY" To="0.94" Duration="0:0:0.08"/>
+                                </Storyboard></BeginStoryboard></Trigger.EnterActions>
+                                <Trigger.ExitActions><BeginStoryboard><Storyboard>
+                                    <DoubleAnimation Storyboard.TargetName="Sc" Storyboard.TargetProperty="ScaleX" To="1" Duration="0:0:0.22"><DoubleAnimation.EasingFunction><BackEase Amplitude="0.5" EasingMode="EaseOut"/></DoubleAnimation.EasingFunction></DoubleAnimation>
+                                    <DoubleAnimation Storyboard.TargetName="Sc" Storyboard.TargetProperty="ScaleY" To="1" Duration="0:0:0.22"><DoubleAnimation.EasingFunction><BackEase Amplitude="0.5" EasingMode="EaseOut"/></DoubleAnimation.EasingFunction></DoubleAnimation>
+                                </Storyboard></BeginStoryboard></Trigger.ExitActions>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -564,12 +612,9 @@
                                            HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                 <StackPanel x:Name="NotifList" VerticalAlignment="Top"/>
                             </Grid>
-                            <DockPanel x:Name="PermissionWarningBanner" Grid.Row="1" Margin="2,2,0,4" Visibility="Collapsed">
-                                <Button Style="{StaticResource GlassPill}" Content="Open settings" Padding="8,2" FontSize="10"
-                                        DockPanel.Dock="Right" Click="OpenWindowsNotificationSettings_Click"/>
-                                <TextBlock Text="Windows notification access is restricted" Foreground="#FF9F0A"
-                                           FontSize="10.5" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
-                            </DockPanel>
+                            <TextBlock x:Name="PermissionWarningBanner" Grid.Row="1" Margin="2,2,0,4" Visibility="Collapsed"
+                                       Text="Shows NextGen Island alerts only. Other apps' notifications aren't available to desktop apps."
+                                       Foreground="#99FFFFFF" FontSize="10.5" TextTrimming="CharacterEllipsis"/>
                             <DockPanel Grid.Row="2" Margin="2,4,0,0">
                                 <Button Style="{StaticResource GlassPill}" Content="Clear all" Padding="10,3" FontSize="10.5" DockPanel.Dock="Right"
                                         Click="ClearNotifications_Click"/>

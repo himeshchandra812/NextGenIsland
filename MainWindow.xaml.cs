@@ -42,7 +42,8 @@ public partial class MainWindow : Window
     private bool _isHovering, _isPinned, _suspendCollapse;
     private bool _bannerActive;
 
-    private string _metricsSummary = "CPU --% \u2022 RAM --%";
+    private static readonly SolidColorBrush DotOnline = Frozen(48, 209, 88), DotOffline = Frozen(255, 69, 58);
+    private static SolidColorBrush Frozen(byte r, byte g, byte b) { var br = new SolidColorBrush(Color.FromRgb(r, g, b)); br.Freeze(); return br; }
     private string? _mediaLabel;
     private string _paletteKey = "none";
 
@@ -158,41 +159,46 @@ public partial class MainWindow : Window
             var b = _batteryMonitor.Read();
             var n = _settings.NetworkMonitoringEnabled ? _networkMonitor.Read() : null;
 
-            CpuBar.Value = m.Cpu;
-            RamBar.Value = m.Ram;
-            CpuText.Text = $"{m.Cpu:0}%";
-            RamText.Text = $"{m.Ram:0}%";
+            // System-tab widgets only matter while that tab is on screen; skip the layout work otherwise.
+            if (ViewSystem.IsVisible && _expanded)
+            {
+                CpuBar.Value = m.Cpu;
+                RamBar.Value = m.Ram;
+                CpuText.Text = $"{m.Cpu:0}%";
+                RamText.Text = $"{m.Ram:0}%";
 
-            if (g.IsAvailable)
-            {
-                GpuBar.Value = g.Utilization;
-                GpuText.Text = g.UtilDisplay;
-                GpuTempText.Text = _settings.UseFahrenheit ? FormatTemp(g.Temperature) + "F" : g.TempDisplay;
-                GpuNameText.Text = g.ModelName;
-                VramBar.Value = g.MemoryPercent;
-                VramText.Text = g.MemoryDisplay;
-            }
-            else
-            {
-                GpuText.Text = "\u2014";
-                GpuTempText.Text = "Offline";
-                GpuNameText.Text = "GPU unavailable";
-                GpuBar.Value = 0;
-                VramText.Text = "\u2014";
-                VramBar.Value = 0;
-            }
+                if (g.IsAvailable)
+                {
+                    GpuBar.Value = g.Utilization;
+                    GpuText.Text = g.UtilDisplay;
+                    GpuTempText.Text = _settings.UseFahrenheit ? FormatTemp(g.Temperature) + "F" : g.TempDisplay;
+                    GpuNameText.Text = g.ModelName;
+                    VramBar.Value = g.MemoryPercent;
+                    VramText.Text = g.MemoryDisplay;
+                }
+                else
+                {
+                    GpuText.Text = "\u2014";
+                    GpuTempText.Text = "Offline";
+                    GpuNameText.Text = "GPU unavailable";
+                    GpuBar.Value = 0;
+                    VramText.Text = "\u2014";
+                    VramBar.Value = 0;
+                }
 
-            if (b.HasBattery)
-            {
-                BatteryGlyphText.Text = b.Glyph;
-                BatteryPercentText.Text = $"{b.Percent}%";
-                BatteryStatusText.Text = b.StatusText;
-            }
-            else
-            {
-                BatteryGlyphText.Text = "\u26A1";
-                BatteryPercentText.Text = "AC";
-                BatteryStatusText.Text = "Desktop power";
+                if (b.HasBattery)
+                {
+                    BatteryGlyphText.Text = b.Glyph;
+                    BatteryPercentText.Text = $"{b.Percent}%";
+                    BatteryStatusText.Text = b.StatusText;
+                }
+                else
+                {
+                    BatteryGlyphText.Text = "\u26A1";
+                    BatteryPercentText.Text = "AC";
+                    BatteryStatusText.Text = "Desktop power";
+                }
+
             }
 
             if (_settings.BatteryWarningsEnabled && b.IsLow)
@@ -215,13 +221,13 @@ public partial class MainWindow : Window
             if (n != null && n.IsConnected)
             {
                 NetworkNameText.Text = n.AdapterName;
-                NetworkStatusDot.Foreground = new SolidColorBrush(Color.FromRgb(48, 209, 88));
+                NetworkStatusDot.Foreground = DotOnline;
                 NetworkSpeedText.Text = $"{n.DownloadSpeedText} | {n.UploadSpeedText}";
             }
             else
             {
                 NetworkNameText.Text = "Offline";
-                NetworkStatusDot.Foreground = new SolidColorBrush(Color.FromRgb(255, 69, 58));
+                NetworkStatusDot.Foreground = DotOffline;
                 NetworkSpeedText.Text = "Disconnected";
             }
 
@@ -648,22 +654,21 @@ public partial class MainWindow : Window
         {
             _hudActive = false;
             _hudTimer.Stop();
-            HudBanner.Visibility = Visibility.Collapsed;
-            NotificationBanner.Visibility = Visibility.Collapsed;
+            Present(HudBanner, false);
+            Present(NotificationBanner, false);
+            Present(CompactHeader, false);
             SyncExpandedHeight();
 
             ExpandedRoot.Visibility = Visibility.Visible;
-            FadeTo(ExpandedRoot, 1.0, 220, 70);
-            FadeTo(CompactHeader, 0.0, 110, 0, () =>
-            {
-                if (_expanded) CompactHeader.Visibility = Visibility.Collapsed;
-            });
+            FadeTo(ExpandedRoot, 1.0, (int)(240 * AnimFactor), (int)(80 * AnimFactor));
+            ShiftExpanded(opening: true);
 
             AnimateIsland(ExpandedWidth, HeightFor(_activeKey), overshoot: true);
         }
         else
         {
-            FadeTo(ExpandedRoot, 0.0, 120, 0, () =>
+            ShiftExpanded(opening: false);
+            FadeTo(ExpandedRoot, 0.0, (int)(110 * AnimFactor), 0, () =>
             {
                 if (!_expanded) ExpandedRoot.Visibility = Visibility.Collapsed;
             });
@@ -679,34 +684,33 @@ public partial class MainWindow : Window
         if (_hudActive)
         {
             // Volume / brightness pop-up (also shown over a full-screen app).
-            CompactHeader.Visibility = Visibility.Collapsed;
-            NotificationBanner.Visibility = Visibility.Collapsed;
-            HudBanner.Visibility = Visibility.Visible;
-            AnimateIsland(HudWidth, HudHeight);
+            Present(CompactHeader, false);
+            Present(NotificationBanner, false);
+            Present(HudBanner, true, 110);
+            AnimateIsland(HudWidth, HudHeight, overshoot: true, amplitude: 0.10);
             return;
         }
-        HudBanner.Visibility = Visibility.Collapsed;
+        Present(HudBanner, false);
 
         if (_fullscreen)
         {
             // Full-screen app in front: just a thin line (banners wait in the history).
-            CompactHeader.Visibility = Visibility.Collapsed;
-            NotificationBanner.Visibility = Visibility.Collapsed;
+            Present(CompactHeader, false);
+            Present(NotificationBanner, false);
             AnimateIsland(LineWidth, LineHeight);
             return;
         }
 
         if (_bannerActive)
         {
-            CompactHeader.Visibility = Visibility.Collapsed;
-            NotificationBanner.Visibility = Visibility.Visible;
-            AnimateIsland(BannerWidth, BannerHeight);
+            Present(CompactHeader, false);
+            Present(NotificationBanner, true, 110);
+            AnimateIsland(BannerWidth, BannerHeight, overshoot: true, amplitude: 0.08);
         }
         else
         {
-            NotificationBanner.Visibility = Visibility.Collapsed;
-            CompactHeader.Visibility = Visibility.Visible;
-            FadeTo(CompactHeader, 1.0, 200, 100);
+            Present(NotificationBanner, false);
+            Present(CompactHeader, true, 140);
             AnimateIsland(CompactWidth, CompactHeight);
         }
     }
@@ -714,12 +718,17 @@ public partial class MainWindow : Window
     // The window is a fixed, transparent canvas; only the island itself changes size. That keeps the
     // window from being resized every frame, which is what made the old animation stutter.
     // Expanding gets a small springy overshoot; collapsing is a plain ease-out.
-    private void AnimateIsland(double islandWidth, double islandHeight, bool overshoot = false)
+    private void AnimateIsland(double islandWidth, double islandHeight, bool overshoot = false, double amplitude = 0.16)
     {
         IEasingFunction ease = overshoot
-            ? new BackEase { EasingMode = EasingMode.EaseOut, Amplitude = 0.16 }
+            ? new BackEase { EasingMode = EasingMode.EaseOut, Amplitude = amplitude }
             : new QuarticEase { EasingMode = EasingMode.EaseOut };
         var dur = TimeSpan.FromMilliseconds((overshoot ? 420 : 320) * AnimFactor);
+
+        // While the island changes size, the expanded content is drawn from a cached bitmap, so it is not
+        // re-rendered on every frame.
+        bool cache = ExpandedRoot.Visibility == Visibility.Visible;
+        if (cache) ExpandedRoot.CacheMode = _animCache;
 
         IslandContainer.BeginAnimation(WidthProperty, new DoubleAnimation
         {
@@ -728,12 +737,14 @@ public partial class MainWindow : Window
             EasingFunction = ease
         });
 
-        IslandContainer.BeginAnimation(HeightProperty, new DoubleAnimation
+        var heightAnim = new DoubleAnimation
         {
             To = islandHeight,
             Duration = dur,
             EasingFunction = ease
-        });
+        };
+        heightAnim.Completed += (_, _) => ExpandedRoot.CacheMode = null;
+        IslandContainer.BeginAnimation(HeightProperty, heightAnim);
     }
 
     // The expanded content keeps a fixed size while the island grows around it, so it is not re-laid-out every frame.

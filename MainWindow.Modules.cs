@@ -77,6 +77,7 @@ public partial class MainWindow
         ApplyShape();
         UpdateLyricsIcon();
         InitUtility();
+        InitAnimations();
     }
 
     private bool IsModuleEnabled(string key)
@@ -87,16 +88,27 @@ public partial class MainWindow
     private void SelectModule(string key)
     {
         if (!_views.ContainsKey(key) || !IsModuleEnabled(key)) return;
-        int prev = EnabledIndexOf(_activeKey);
+        string prevKey = _activeKey;
+        int prev = EnabledIndexOf(prevKey);
         _activeKey = key;
         int next = EnabledIndexOf(key);
 
-        foreach (var v in _views.Values) v.Visibility = Visibility.Collapsed;
-        var view = _views[key];
-        view.Visibility = Visibility.Visible;
-
         // Slide in from the side we are travelling towards.
         double dx = next == prev ? 0.0 : (next > prev ? 18.0 : -18.0);
+
+        // The tab we are leaving fades out while the new one fades in (only when the island is open).
+        bool crossfade = _expanded && ExpandedRoot.Visibility == Visibility.Visible
+                         && prevKey != key && _views.ContainsKey(prevKey);
+        foreach (var kv in _views)
+        {
+            if (kv.Key == key) continue;
+            if (crossfade && kv.Key == prevKey) FadeOutView(kv.Key, kv.Value, dx);
+            else kv.Value.Visibility = Visibility.Collapsed;
+        }
+
+        var view = _views[key];
+        view.IsHitTestVisible = true;
+        view.Visibility = Visibility.Visible;
         var slide = new TranslateTransform(dx, 0);
         view.RenderTransform = slide;
         slide.BeginAnimation(TranslateTransform.XProperty, new DoubleAnimation(dx, 0, TimeSpan.FromMilliseconds(300 * AnimFactor))
@@ -110,6 +122,16 @@ public partial class MainWindow
 
         MoveIndicator(animate: true);
         RefreshModuleData(key);
+        if (crossfade)
+        {
+            switch (key)
+            {
+                case "Notifications": StaggerIn(NotifList); break;
+                case "Clipboard": StaggerIn(ClipList); break;
+                case "Reminders": StaggerIn(ReminderItems); break;
+                case "Shelf": StaggerIn(ShelfPanel); break;
+            }
+        }
         ResizeForView();
         ApplyPalette(EffectivePalette());
     }
@@ -138,8 +160,8 @@ public partial class MainWindow
         NavIndicatorShift.BeginAnimation(TranslateTransform.XProperty, new DoubleAnimation
         {
             To = x,
-            Duration = TimeSpan.FromMilliseconds(240),
-            EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
+            Duration = TimeSpan.FromMilliseconds(300 * AnimFactor),
+            EasingFunction = new QuinticEase { EasingMode = EasingMode.EaseOut }
         });
     }
 
