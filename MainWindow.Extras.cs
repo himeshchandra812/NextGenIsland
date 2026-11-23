@@ -102,7 +102,7 @@ public partial class MainWindow
         GlassHighlight.Visibility = pill ? Visibility.Collapsed : Visibility.Visible;
         GlassRim.Opacity = pill ? 0.25 : 1.0;
         IslandContainer.BorderThickness = pill ? new Thickness(1) : new Thickness(1, 0, 1, 1);
-        _topGap = pill ? 8 : 0;
+        _topGap = pill ? Math.Clamp(_settings.PillTopGap, 0, 40) : 0;
         IslandContainer.Margin = new Thickness(0, _topGap, 0, 0);
 
         if (_expanded) ExpandIsland(true); else ShowCollapsedState();

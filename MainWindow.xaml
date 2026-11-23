@@ -278,6 +278,7 @@
                 CornerRadius="0,0,28,28"
                 MouseEnter="IslandContainer_MouseEnter"
                 MouseLeave="IslandContainer_MouseLeave"
+                MouseLeftButtonUp="IslandContainer_Click"
                 AllowDrop="True"
                 DragEnter="Island_DragEnter"
                 DragOver="Island_DragOver"
@@ -321,9 +322,10 @@
 
                 <!-- Collapsed: CPU on the left, temperature on the right (NotchPixel style) -->
                 <Grid x:Name="CompactHeader" VerticalAlignment="Top" Height="38" Margin="20,0,20,0">
-                    <TextBlock x:Name="CompactTime" Text="--:--" Visibility="Collapsed"/>
+                    <TextBlock x:Name="CompactTime" Text="--:--" Visibility="Collapsed" Foreground="White" FontSize="13" FontWeight="Bold"
+                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     <Grid x:Name="CompactStats">
-                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center">
+                        <StackPanel x:Name="CompactCpuStack" Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center">
                             <TextBlock Text="CPU" Foreground="#8CFFFFFF" FontSize="11.5" FontWeight="Medium" VerticalAlignment="Center"/>
                             <TextBlock x:Name="CompactCpuValue" Text="--%" Foreground="White" FontSize="12" FontWeight="Bold"
                                        Margin="6,0,0,0" VerticalAlignment="Center"/>

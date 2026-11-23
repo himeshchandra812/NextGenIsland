@@ -24,6 +24,7 @@ internal static class FullscreenDetector
     [DllImport("user32.dll")] private static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint processId);
     [DllImport("user32.dll")] private static extern IntPtr MonitorFromWindow(IntPtr hWnd, uint flags);
     [DllImport("user32.dll", CharSet = CharSet.Unicode)] private static extern bool GetMonitorInfo(IntPtr monitor, ref MonitorInfo info);
+    [DllImport("user32.dll")] private static extern bool IsZoomed(IntPtr hWnd);
     [DllImport("shell32.dll")] private static extern int SHQueryUserNotificationState(out int state);
 
     private const uint MonitorDefaultToNearest = 2;
@@ -38,7 +39,8 @@ internal static class FullscreenDetector
     };
 
     /// <param name="ourWindow">The island's own window, so it can be ignored.</param>
-    public static bool IsActive(IntPtr ourWindow)
+    /// <param name="includeMaximized">Also count an ordinary maximized window (taskbar still visible).</param>
+    public static bool IsActive(IntPtr ourWindow, bool includeMaximized = false)
     {
         try
         {
@@ -67,14 +69,15 @@ internal static class FullscreenDetector
 
             int state = -1;
             SHQueryUserNotificationState(out state);
+            bool zoomed = IsZoomed(fg);
 
             LastReport = $"class={cn} pid={pid} window=({r.Left},{r.Top},{r.Right},{r.Bottom}) " +
                          $"monitor=({info.Monitor.Left},{info.Monitor.Top},{info.Monitor.Right},{info.Monitor.Bottom}) " +
-                         $"sameMonitor={sameMonitor} covers={covers} userState={state}";
+                         $"sameMonitor={sameMonitor} covers={covers} maximized={zoomed} userState={state}";
 
             if (!sameMonitor) return false;
             // userState 3 = D3D full screen, 4 = presentation mode.
-            return covers || state == 3 || state == 4;
+            return covers || state == 3 || state == 4 || (includeMaximized && zoomed);
         }
         catch
         {

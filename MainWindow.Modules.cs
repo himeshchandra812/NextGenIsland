@@ -99,11 +99,11 @@ public partial class MainWindow
         double dx = next == prev ? 0.0 : (next > prev ? 18.0 : -18.0);
         var slide = new TranslateTransform(dx, 0);
         view.RenderTransform = slide;
-        slide.BeginAnimation(TranslateTransform.XProperty, new DoubleAnimation(dx, 0, TimeSpan.FromMilliseconds(300))
+        slide.BeginAnimation(TranslateTransform.XProperty, new DoubleAnimation(dx, 0, TimeSpan.FromMilliseconds(300 * AnimFactor))
         {
             EasingFunction = new QuinticEase { EasingMode = EasingMode.EaseOut }
         });
-        view.BeginAnimation(OpacityProperty, new DoubleAnimation(0.0, 1.0, TimeSpan.FromMilliseconds(220))
+        view.BeginAnimation(OpacityProperty, new DoubleAnimation(0.0, 1.0, TimeSpan.FromMilliseconds(220 * AnimFactor))
         {
             EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
         });
@@ -544,17 +544,17 @@ public partial class MainWindow
             {
                 fired = true;
                 _notificationService.PostNotification("Reminder", r.Text,
-                    "Due " + r.Due.Value.ToString("HH:mm"), isSystemAlert: false);
+                    "Due " + ClockText(r.Due.Value), isSystemAlert: false);
             }
         }
         if (fired && ViewReminders.Visibility == Visibility.Visible) RenderReminders();
     }
 
-    private static string DueLabel(ReminderItem r)
+    private string DueLabel(ReminderItem r)
     {
         if (!r.Due.HasValue) return "";
         var d = r.Due.Value;
-        string when = d.Date == DateTime.Today ? d.ToString("HH:mm") : d.ToString("ddd HH:mm");
+        string when = d.Date == DateTime.Today ? ClockText(d) : d.ToString("ddd ") + ClockText(d);
         return r.Repeat == "Once" ? when : when + " - " + r.Repeat;
     }
 
@@ -723,7 +723,7 @@ public partial class MainWindow
     private void UpdateWidgetClock()
     {
         var now = DateTime.Now;
-        WidgetClockText.Text = now.ToString("HH:mm:ss");
+        WidgetClockText.Text = ClockText(now, true);
         WidgetDateText.Text = now.ToString("dddd");
         WidgetMonthText.Text = now.ToString("MMMM").ToUpperInvariant();
         WidgetDayText.Text = now.Day.ToString();

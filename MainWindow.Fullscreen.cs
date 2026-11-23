@@ -18,7 +18,7 @@ public partial class MainWindow
     // Called once a second. Needs two matching checks in a row before switching, so quick alt-tabs do not flicker.
     private void CheckFullscreen()
     {
-        bool want = _settings.ShrinkInFullscreen && FullscreenDetector.IsActive(new WindowInteropHelper(this).Handle);
+        bool want = _settings.ShrinkInFullscreen && FullscreenDetector.IsActive(new WindowInteropHelper(this).Handle, _settings.ShrinkWhenMaximized);
         LogFullscreen(want);
         if (want == _fullscreen) { _fullscreenVotes = 0; return; }
         if (++_fullscreenVotes < 2) return;
@@ -56,5 +56,6 @@ public partial class MainWindow
         _islandShadow ??= IslandContainer.Effect;
         IslandContainer.Effect = line ? null : _islandShadow;
         IslandContainer.Margin = new Thickness(0, line ? 0.0 : _topGap, 0, 0);
+        IslandContainer.Opacity = line ? 1.0 : Math.Clamp(_settings.IslandOpacity, 40, 100) / 100.0;
     }
 }

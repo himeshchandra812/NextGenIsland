@@ -8,11 +8,25 @@ public sealed class AppSettings
 {
         public bool HoverExpansionEnabled { get; set; } = true;
     public int HoverCollapseDelayMs { get; set; } = 500;
+    // Wait before a hover opens the island (0 = instant).
+    public int HoverOpenDelayMs { get; set; } = 0;
+    // Slow, Normal or Fast: speed of the expand / collapse animation.
+    public string AnimationSpeed { get; set; } = "Normal";
+    // What the collapsed pill shows: CpuTemp, Clock or ClockCpu.
+    public string PillContent { get; set; } = "CpuTemp";
+    public bool Use24HourClock { get; set; } = true;
+    public bool UseFahrenheit { get; set; } = false;
+    // Gap between the top of the screen and the floating pill, in pixels (Pill shape only).
+    public int PillTopGap { get; set; } = 8;
+    // Island opacity in percent (100 = solid).
+    public int IslandOpacity { get; set; } = 100;
     public bool ClickPinEnabled { get; set; } = true;
     public bool ClipboardPaused { get; set; } = false;
     public bool StartWithWindows { get; set; }
     // Collapses the island to a thin line at the top edge while a full-screen app is in front.
     public bool ShrinkInFullscreen { get; set; } = true;
+    // Also shrink to the thin line when an ordinary maximized window is in front (needs ShrinkInFullscreen).
+    public bool ShrinkWhenMaximized { get; set; } = false;
     // Shows a slider on the island when the volume or brightness keys are pressed.
     public bool ShowKeyHud { get; set; } = true;
     public bool NotificationsEnabled { get; set; } = true;

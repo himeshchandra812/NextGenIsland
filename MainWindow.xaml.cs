@@ -97,7 +97,7 @@ public partial class MainWindow : Window
         _ready = true;
         InitModules();
         NavMedia.IsChecked = true;      // fires Nav_Checked -> SelectModule("Media")
-        CompactTime.Text = DateTime.Now.ToString("HH:mm");
+        CompactTime.Text = ClockText(DateTime.Now);
 
         _timer.Start();
         await RefreshMetricsAsync();
@@ -136,7 +136,7 @@ public partial class MainWindow : Window
 
     private async Task OnTimerTickAsync()
     {
-        CompactTime.Text = DateTime.Now.ToString("HH:mm");
+        CompactTime.Text = ClockText(DateTime.Now);
         CheckFullscreen();
         await RefreshMetricsAsync();
         await _mediaService.RefreshMediaStateAsync();
@@ -167,7 +167,7 @@ public partial class MainWindow : Window
             {
                 GpuBar.Value = g.Utilization;
                 GpuText.Text = g.UtilDisplay;
-                GpuTempText.Text = g.TempDisplay;
+                GpuTempText.Text = _settings.UseFahrenheit ? FormatTemp(g.Temperature) + "F" : g.TempDisplay;
                 GpuNameText.Text = g.ModelName;
                 VramBar.Value = g.MemoryPercent;
                 VramText.Text = g.MemoryDisplay;
@@ -225,21 +225,51 @@ public partial class MainWindow : Window
                 NetworkSpeedText.Text = "Disconnected";
             }
 
-            CompactCpuValue.Text = $"{m.Cpu:0}%";
-            bool gpuTemp = g.IsAvailable;
-            CompactRightLabel.Visibility = gpuTemp ? Visibility.Collapsed : Visibility.Visible;
-            CompactRightValue.Text = gpuTemp ? $"{g.Temperature:0}\u00B0" : $"{m.Ram:0}%";
+            _pillCpu = $"{m.Cpu:0}%";
+            _pillRight = g.IsAvailable ? FormatTemp(g.Temperature) : $"{m.Ram:0}%";
+            _pillRightLabel = g.IsAvailable ? null : "RAM";
             UpdateCompactText();
         }
         catch (Exception ex) { Debug.WriteLine("RefreshMetricsAsync error: " + ex); }
     }
 
+    private string _pillCpu = "--%", _pillRight = "--";
+    private string? _pillRightLabel;
+
+    // Draws the collapsed pill according to Settings > Collapsed pill shows (a song title replaces it while playing).
     private void UpdateCompactText()
     {
         bool media = _mediaLabel != null;
         CompactMetrics.Text = _mediaLabel ?? "";
         CompactMetrics.Visibility = media ? Visibility.Visible : Visibility.Collapsed;
-        CompactStats.Visibility = media ? Visibility.Collapsed : Visibility.Visible;
+        if (media)
+        {
+            CompactStats.Visibility = Visibility.Collapsed;
+            CompactTime.Visibility = Visibility.Collapsed;
+            return;
+        }
+
+        string mode = _settings.PillContent;
+        CompactStats.Visibility = mode == "Clock" ? Visibility.Collapsed : Visibility.Visible;
+        CompactTime.Visibility = mode == "CpuTemp" ? Visibility.Collapsed : Visibility.Visible;
+        CompactTime.HorizontalAlignment = mode == "Clock" ? HorizontalAlignment.Center : HorizontalAlignment.Left;
+        CompactTime.Text = ClockText(DateTime.Now);
+
+        if (mode == "ClockCpu")
+        {
+            CompactCpuStack.Visibility = Visibility.Collapsed;
+            CompactRightLabel.Text = "CPU";
+            CompactRightLabel.Visibility = Visibility.Visible;
+            CompactRightValue.Text = _pillCpu;
+        }
+        else
+        {
+            CompactCpuStack.Visibility = Visibility.Visible;
+            CompactCpuValue.Text = _pillCpu;
+            CompactRightLabel.Text = _pillRightLabel ?? "";
+            CompactRightLabel.Visibility = _pillRightLabel == null ? Visibility.Collapsed : Visibility.Visible;
+            CompactRightValue.Text = _pillRight;
+        }
     }
 
     // ---------------------------------------------------------------- notifications
@@ -536,17 +566,46 @@ public partial class MainWindow : Window
 
     // ---------------------------------------------------------------- hover / pin
 
+    private DispatcherTimer? _openTimer;
+
+    // Slow / Normal / Fast multiplies the length of the island animation.
+    private double AnimFactor => _settings.AnimationSpeed switch { "Slow" => 1.6, "Fast" => 0.6, _ => 1.0 };
+
     private void IslandContainer_MouseEnter(object sender, MouseEventArgs e)
     {
         _isHovering = true;
         _collapseTimer?.Stop();
-        if (_settings.HoverExpansionEnabled && !_expanded)
-            ExpandIsland(true);
+        if (!_settings.HoverExpansionEnabled || _expanded) return;
+
+        int delay = _settings.HoverOpenDelayMs;
+        if (delay <= 0) { ExpandIsland(true); return; }
+
+        if (_openTimer == null)
+        {
+            _openTimer = new DispatcherTimer();
+            _openTimer.Tick += (_, _) =>
+            {
+                _openTimer?.Stop();
+                if (_isHovering && !_expanded && _settings.HoverExpansionEnabled) ExpandIsland(true);
+            };
+        }
+        _openTimer.Stop();
+        _openTimer.Interval = TimeSpan.FromMilliseconds(delay);
+        _openTimer.Start();
+    }
+
+    // With "open on hover" turned off, a click on the collapsed island opens it.
+    private void IslandContainer_Click(object sender, MouseButtonEventArgs e)
+    {
+        if (_settings.HoverExpansionEnabled || _expanded || _bannerActive || _hudActive) return;
+        ExpandIsland(true);
+        e.Handled = true;
     }
 
     private void IslandContainer_MouseLeave(object sender, MouseEventArgs e)
     {
         _isHovering = false;
+        _openTimer?.Stop();
         if (_isPinned || _suspendCollapse) return;
         if (_collapseTimer != null)
         {
@@ -660,7 +719,7 @@ public partial class MainWindow : Window
         IEasingFunction ease = overshoot
             ? new BackEase { EasingMode = EasingMode.EaseOut, Amplitude = 0.16 }
             : new QuarticEase { EasingMode = EasingMode.EaseOut };
-        var dur = TimeSpan.FromMilliseconds(overshoot ? 420 : 320);
+        var dur = TimeSpan.FromMilliseconds((overshoot ? 420 : 320) * AnimFactor);
 
         IslandContainer.BeginAnimation(WidthProperty, new DoubleAnimation
         {
@@ -714,6 +773,7 @@ public partial class MainWindow : Window
             _notificationService.QuietMode = _settings.QuietMode;
             _notificationService.DisplayDurationSeconds = _settings.NotificationDurationSeconds;
             _networkMonitor.SetSelectedInterface(_settings.SelectedNetworkInterface);
+            UpdateCompactText();
             UpdateQuietModeUI();
             ApplyCardVisibility();
             ApplyPalette(EffectivePalette());

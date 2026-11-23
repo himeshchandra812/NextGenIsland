@@ -20,6 +20,7 @@ public partial class SettingsWindow : Window
         PauseClipboard.IsChecked = s.ClipboardPaused;
         StartWithWindows.IsChecked = s.StartWithWindows;
         ShrinkInFullscreen.IsChecked = s.ShrinkInFullscreen;
+        ShrinkWhenMaximized.IsChecked = s.ShrinkWhenMaximized;
         ShowKeyHud.IsChecked = s.ShowKeyHud;
 
         // Notifications
@@ -32,6 +33,16 @@ public partial class SettingsWindow : Window
         // Hardware
         BatteryWarnings.IsChecked = s.BatteryWarningsEnabled;
         NetworkMonitoring.IsChecked = s.NetworkMonitoringEnabled;
+
+        HoverOpen.IsChecked = s.HoverExpansionEnabled;
+        SelectTag(PillContentCombo, s.PillContent, "CpuTemp");
+        Clock24.IsChecked = s.Use24HourClock;
+        UseFahrenheit.IsChecked = s.UseFahrenheit;
+        SelectNearest(TopGapCombo, s.PillTopGap);
+        SelectNearest(OpacityCombo, s.IslandOpacity);
+        SelectNearest(OpenDelayCombo, s.HoverOpenDelayMs);
+        SelectNearest(CloseDelayCombo, s.HoverCollapseDelayMs);
+        SelectTag(AnimSpeedCombo, s.AnimationSpeed, "Normal");
 
         ShapeCombo.SelectedIndex = s.IslandShape == "Pill" ? 1 : 0;
         ShowLyrics.IsChecked = s.ShowLyrics;
@@ -218,6 +229,7 @@ public partial class SettingsWindow : Window
         settings.ClipboardPaused = PauseClipboard.IsChecked == true;
         settings.StartWithWindows = StartWithWindows.IsChecked == true;
         settings.ShrinkInFullscreen = ShrinkInFullscreen.IsChecked == true;
+        settings.ShrinkWhenMaximized = ShrinkWhenMaximized.IsChecked == true;
         settings.ShowKeyHud = ShowKeyHud.IsChecked == true;
         settings.NotificationsEnabled = EnableNotifications.IsChecked == true;
         settings.QuietMode = QuietModeToggle.IsChecked == true;
@@ -225,6 +237,15 @@ public partial class SettingsWindow : Window
         settings.BatteryWarningsEnabled = BatteryWarnings.IsChecked == true;
         settings.NetworkMonitoringEnabled = NetworkMonitoring.IsChecked == true;
         settings.SelectedNetworkInterface = GetSelectedInterface();
+        settings.HoverExpansionEnabled = HoverOpen.IsChecked == true;
+        settings.PillContent = (PillContentCombo.SelectedItem as ComboBoxItem)?.Tag?.ToString() ?? "CpuTemp";
+        settings.Use24HourClock = Clock24.IsChecked == true;
+        settings.UseFahrenheit = UseFahrenheit.IsChecked == true;
+        settings.PillTopGap = TagInt(TopGapCombo, 8);
+        settings.IslandOpacity = TagInt(OpacityCombo, 100);
+        settings.HoverOpenDelayMs = TagInt(OpenDelayCombo, 0);
+        settings.HoverCollapseDelayMs = TagInt(CloseDelayCombo, 500);
+        settings.AnimationSpeed = (AnimSpeedCombo.SelectedItem as ComboBoxItem)?.Tag?.ToString() ?? "Normal";
         settings.IslandShape = (ShapeCombo.SelectedItem as ComboBoxItem)?.Tag?.ToString() == "Pill" ? "Pill" : "Notch";
         settings.ShowLyrics = ShowLyrics.IsChecked == true;
         settings.Theme = ThemeWallpaper.IsChecked == true ? "Wallpaper"
@@ -243,5 +264,31 @@ public partial class SettingsWindow : Window
 
         SettingsStore.Save(settings);
         Close();
+    }
+
+    // ---- combo helpers for the Behaviour section
+    private static int TagInt(ComboBox box, int fallback)
+        => int.TryParse((box.SelectedItem as ComboBoxItem)?.Tag?.ToString(), out int v) ? v : fallback;
+
+    private static void SelectNearest(ComboBox box, int value)
+    {
+        int best = 0, bestDiff = int.MaxValue;
+        for (int i = 0; i < box.Items.Count; i++)
+        {
+            if (box.Items[i] is ComboBoxItem it && int.TryParse(it.Tag?.ToString(), out int v))
+            {
+                int d = Math.Abs(v - value);
+                if (d < bestDiff) { bestDiff = d; best = i; }
+            }
+        }
+        box.SelectedIndex = best;
+    }
+
+    private static void SelectTag(ComboBox box, string tag, string fallback)
+    {
+        foreach (var item in box.Items)
+            if (item is ComboBoxItem it && it.Tag?.ToString() == tag) { box.SelectedItem = it; return; }
+        foreach (var item in box.Items)
+            if (item is ComboBoxItem it && it.Tag?.ToString() == fallback) { box.SelectedItem = it; return; }
     }
 }

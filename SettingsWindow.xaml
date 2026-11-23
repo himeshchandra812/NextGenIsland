@@ -238,6 +238,14 @@
                                 </DockPanel>
                                 <Border Style="{StaticResource Divider}"/>
                                 <DockPanel Style="{StaticResource Row}">
+                                    <CheckBox x:Name="ShrinkWhenMaximized" DockPanel.Dock="Right" VerticalAlignment="Center"/>
+                                    <StackPanel VerticalAlignment="Center" Margin="0,0,14,0">
+                                        <TextBlock Text="Also shrink for maximized windows" Style="{StaticResource RowTitle}"/>
+                                        <TextBlock Text="The thin line also appears when any window is maximized, not only full-screen apps. Needs the option above." Style="{StaticResource RowHint}"/>
+                                    </StackPanel>
+                                </DockPanel>
+                                <Border Style="{StaticResource Divider}"/>
+                                <DockPanel Style="{StaticResource Row}">
                                     <CheckBox x:Name="ShowKeyHud" DockPanel.Dock="Right" VerticalAlignment="Center"/>
                                     <StackPanel VerticalAlignment="Center" Margin="0,0,14,0">
                                         <TextBlock Text="Volume and brightness pop-up" Style="{StaticResource RowTitle}"/>
@@ -250,6 +258,120 @@
                                     <StackPanel VerticalAlignment="Center" Margin="0,0,14,0">
                                         <TextBlock Text="Pause clipboard history" Style="{StaticResource RowTitle}"/>
                                         <TextBlock Text="Stop recording copied items until you turn this off" Style="{StaticResource RowHint}"/>
+                                    </StackPanel>
+                                </DockPanel>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- BEHAVIOUR -->
+                        <TextBlock Text="BEHAVIOUR" Style="{StaticResource SectionLabel}"/>
+                        <Border Style="{StaticResource Card}">
+                            <StackPanel>
+                                <DockPanel Style="{StaticResource Row}">
+                                    <CheckBox x:Name="HoverOpen" DockPanel.Dock="Right" VerticalAlignment="Center"/>
+                                    <StackPanel VerticalAlignment="Center" Margin="0,0,14,0">
+                                        <TextBlock Text="Open on hover" Style="{StaticResource RowTitle}"/>
+                                        <TextBlock Text="Turn off to open the island by clicking it instead." Style="{StaticResource RowHint}"/>
+                                    </StackPanel>
+                                </DockPanel>
+                                <Border Style="{StaticResource Divider}"/>
+                                <DockPanel Style="{StaticResource Row}">
+                                    <ComboBox x:Name="OpenDelayCombo" Width="150" DockPanel.Dock="Right" VerticalAlignment="Center">
+                                        <ComboBoxItem Content="Instant" Tag="0"/>
+                                        <ComboBoxItem Content="0.2 s" Tag="200"/>
+                                        <ComboBoxItem Content="0.4 s" Tag="400"/>
+                                        <ComboBoxItem Content="0.7 s" Tag="700"/>
+                                    </ComboBox>
+                                    <StackPanel VerticalAlignment="Center" Margin="0,0,14,0">
+                                        <TextBlock Text="Open delay" Style="{StaticResource RowTitle}"/>
+                                        <TextBlock Text="How long the pointer rests on the island before it opens." Style="{StaticResource RowHint}"/>
+                                    </StackPanel>
+                                </DockPanel>
+                                <Border Style="{StaticResource Divider}"/>
+                                <DockPanel Style="{StaticResource Row}">
+                                    <ComboBox x:Name="CloseDelayCombo" Width="150" DockPanel.Dock="Right" VerticalAlignment="Center">
+                                        <ComboBoxItem Content="0.2 s" Tag="200"/>
+                                        <ComboBoxItem Content="0.5 s" Tag="500"/>
+                                        <ComboBoxItem Content="1 s" Tag="1000"/>
+                                        <ComboBoxItem Content="2 s" Tag="2000"/>
+                                    </ComboBox>
+                                    <StackPanel VerticalAlignment="Center" Margin="0,0,14,0">
+                                        <TextBlock Text="Close delay" Style="{StaticResource RowTitle}"/>
+                                        <TextBlock Text="How long the island stays open after the pointer leaves." Style="{StaticResource RowHint}"/>
+                                    </StackPanel>
+                                </DockPanel>
+                                <Border Style="{StaticResource Divider}"/>
+                                <DockPanel Style="{StaticResource Row}">
+                                    <ComboBox x:Name="AnimSpeedCombo" Width="150" DockPanel.Dock="Right" VerticalAlignment="Center">
+                                        <ComboBoxItem Content="Slow" Tag="Slow"/>
+                                        <ComboBoxItem Content="Normal" Tag="Normal"/>
+                                        <ComboBoxItem Content="Fast" Tag="Fast"/>
+                                    </ComboBox>
+                                    <StackPanel VerticalAlignment="Center" Margin="0,0,14,0">
+                                        <TextBlock Text="Animation speed" Style="{StaticResource RowTitle}"/>
+                                        <TextBlock Text="How quickly the island opens, closes and changes tabs." Style="{StaticResource RowHint}"/>
+                                    </StackPanel>
+                                </DockPanel>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- DISPLAY -->
+                        <TextBlock Text="DISPLAY" Style="{StaticResource SectionLabel}"/>
+                        <Border Style="{StaticResource Card}">
+                            <StackPanel>
+                                <DockPanel Style="{StaticResource Row}">
+                                    <ComboBox x:Name="PillContentCombo" Width="170" DockPanel.Dock="Right" VerticalAlignment="Center">
+                                        <ComboBoxItem Content="CPU and temperature" Tag="CpuTemp"/>
+                                        <ComboBoxItem Content="Clock" Tag="Clock"/>
+                                        <ComboBoxItem Content="Clock and CPU" Tag="ClockCpu"/>
+                                    </ComboBox>
+                                    <StackPanel VerticalAlignment="Center" Margin="0,0,14,0">
+                                        <TextBlock Text="Collapsed pill shows" Style="{StaticResource RowTitle}"/>
+                                        <TextBlock Text="What the small pill displays. A song title replaces it while music plays." Style="{StaticResource RowHint}"/>
+                                    </StackPanel>
+                                </DockPanel>
+                                <Border Style="{StaticResource Divider}"/>
+                                <DockPanel Style="{StaticResource Row}">
+                                    <CheckBox x:Name="Clock24" DockPanel.Dock="Right" VerticalAlignment="Center"/>
+                                    <StackPanel VerticalAlignment="Center" Margin="0,0,14,0">
+                                        <TextBlock Text="24-hour clock" Style="{StaticResource RowTitle}"/>
+                                        <TextBlock Text="Turn off for a 12-hour clock with AM and PM." Style="{StaticResource RowHint}"/>
+                                    </StackPanel>
+                                </DockPanel>
+                                <Border Style="{StaticResource Divider}"/>
+                                <DockPanel Style="{StaticResource Row}">
+                                    <CheckBox x:Name="UseFahrenheit" DockPanel.Dock="Right" VerticalAlignment="Center"/>
+                                    <StackPanel VerticalAlignment="Center" Margin="0,0,14,0">
+                                        <TextBlock Text="Temperatures in Fahrenheit" Style="{StaticResource RowTitle}"/>
+                                        <TextBlock Text="Applies to the pill, GPU temperature and weather." Style="{StaticResource RowHint}"/>
+                                    </StackPanel>
+                                </DockPanel>
+                                <Border Style="{StaticResource Divider}"/>
+                                <DockPanel Style="{StaticResource Row}">
+                                    <ComboBox x:Name="TopGapCombo" Width="110" DockPanel.Dock="Right" VerticalAlignment="Center">
+                                        <ComboBoxItem Content="0 px" Tag="0"/>
+                                        <ComboBoxItem Content="4 px" Tag="4"/>
+                                        <ComboBoxItem Content="8 px" Tag="8"/>
+                                        <ComboBoxItem Content="12 px" Tag="12"/>
+                                        <ComboBoxItem Content="16 px" Tag="16"/>
+                                        <ComboBoxItem Content="24 px" Tag="24"/>
+                                    </ComboBox>
+                                    <StackPanel VerticalAlignment="Center" Margin="0,0,14,0">
+                                        <TextBlock Text="Distance from the top" Style="{StaticResource RowTitle}"/>
+                                        <TextBlock Text="Gap above the floating pill. The Notch shape always touches the top edge." Style="{StaticResource RowHint}"/>
+                                    </StackPanel>
+                                </DockPanel>
+                                <Border Style="{StaticResource Divider}"/>
+                                <DockPanel Style="{StaticResource Row}">
+                                    <ComboBox x:Name="OpacityCombo" Width="110" DockPanel.Dock="Right" VerticalAlignment="Center">
+                                        <ComboBoxItem Content="100%" Tag="100"/>
+                                        <ComboBoxItem Content="90%" Tag="90"/>
+                                        <ComboBoxItem Content="80%" Tag="80"/>
+                                        <ComboBoxItem Content="70%" Tag="70"/>
+                                    </ComboBox>
+                                    <StackPanel VerticalAlignment="Center" Margin="0,0,14,0">
+                                        <TextBlock Text="Island opacity" Style="{StaticResource RowTitle}"/>
+                                        <TextBlock Text="Lower it to make the island see-through." Style="{StaticResource RowHint}"/>
                                     </StackPanel>
                                 </DockPanel>
                             </StackPanel>

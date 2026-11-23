@@ -118,7 +118,7 @@ public partial class MainWindow
             double temp = cur.GetProperty("temperature_2m").GetDouble();
             int code = cur.GetProperty("weather_code").GetInt32();
 
-            WeatherTempText.Text = Math.Round(temp).ToString("0", inv) + "\u00B0";
+            WeatherTempText.Text = FormatTemp(temp);
             WeatherDescText.Text = WeatherText(code);
         }
         catch (Exception ex)
