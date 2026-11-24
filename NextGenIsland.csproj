@@ -7,7 +7,13 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <AssemblyName>NextGenIsland</AssemblyName>
     <RootNamespace>NextGenIsland</RootNamespace>
-    <Version>1.0.0</Version>
+    <Version>1.1.0</Version>
+    <ApplicationIcon>NextGenIsland.ico</ApplicationIcon>
+    <Product>NextGen Island</Product>
+    <Company>NextGen Island</Company>
+    <Description>A Dynamic Island for Windows</Description>
+    <Copyright>Copyright (c) 2026 Himesh Chandra</Copyright>
+    <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
     <NuGetAudit>false</NuGetAudit>
   </PropertyGroup>
   <ItemGroup>

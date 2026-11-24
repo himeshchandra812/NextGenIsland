@@ -15,6 +15,8 @@ public partial class SettingsWindow : Window
     {
         InitializeComponent();
         var s = SettingsStore.Load();
+        var ver = typeof(SettingsWindow).Assembly.GetName().Version;
+        AboutVersion.Text = "NextGen Island " + (ver == null ? "" : $"v{ver.Major}.{ver.Minor}.{ver.Build}");
 
         // General
         PauseClipboard.IsChecked = s.ClipboardPaused;
@@ -170,6 +172,27 @@ public partial class SettingsWindow : Window
     }
 
     private void Close_Click(object sender, RoutedEventArgs e) => Close();
+
+    private void OpenLog_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            if (!System.IO.File.Exists(AppLog.FilePath)) AppLog.Write("Log opened from Settings");
+            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(AppLog.FilePath) { UseShellExecute = true });
+        }
+        catch (Exception ex) { AppLog.Write("Could not open log", ex); }
+    }
+
+    private void OpenDataFolder_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            string dir = System.IO.Path.GetDirectoryName(AppLog.FilePath)!;
+            System.IO.Directory.CreateDirectory(dir);
+            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(dir) { UseShellExecute = true });
+        }
+        catch (Exception ex) { AppLog.Write("Could not open data folder", ex); }
+    }
 
     private void OpenNotificationSettings_Click(object sender, RoutedEventArgs e)
     {

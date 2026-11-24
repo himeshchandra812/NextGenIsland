@@ -559,6 +559,23 @@
                                 <UniformGrid x:Name="CardSettingsPanel" Columns="2"/>
                             </StackPanel>
                         </Border>
+
+                        <!-- ABOUT -->
+                        <TextBlock Text="ABOUT" Style="{StaticResource SectionLabel}"/>
+                        <Border Style="{StaticResource Card}">
+                            <StackPanel>
+                                <DockPanel Style="{StaticResource Row}">
+                                    <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
+                                        <Button Style="{StaticResource ApplePillButton}" Content="Open log" Padding="12,6" Margin="0,0,8,0" Click="OpenLog_Click"/>
+                                        <Button Style="{StaticResource ApplePillButton}" Content="Data folder" Padding="12,6" Click="OpenDataFolder_Click"/>
+                                    </StackPanel>
+                                    <StackPanel VerticalAlignment="Center" Margin="0,0,14,0">
+                                        <TextBlock x:Name="AboutVersion" Text="NextGen Island" Style="{StaticResource RowTitle}"/>
+                                        <TextBlock Text="Settings and the problem log are kept in your Local AppData folder. Nothing is sent anywhere except lyrics, weather and website lookups you use." Style="{StaticResource RowHint}"/>
+                                    </StackPanel>
+                                </DockPanel>
+                            </StackPanel>
+                        </Border>
                     </StackPanel>
                 </ScrollViewer>
 

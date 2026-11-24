@@ -102,6 +102,24 @@ public partial class MainWindow : Window
 
         _timer.Start();
         await RefreshMetricsAsync();
+        _ = ShowWelcomeOnceAsync();
+    }
+
+    // First launch only: a short banner that says how to use the island.
+    private async Task ShowWelcomeOnceAsync()
+    {
+        try
+        {
+            if (_settings.WelcomeShown) return;
+            await Task.Delay(3500);
+            _settings.WelcomeShown = true;
+            SettingsStore.Save(_settings);
+            _notificationService.PostNotification(
+                "NextGen Island",
+                "Welcome",
+                "Hover the pill to open it. Right-click the tray icon for settings.");
+        }
+        catch (Exception ex) { AppLog.Write("Welcome banner failed", ex); }
     }
 
     // The island is always anchored to the top-centre of the work area. It is never draggable.
@@ -828,6 +846,12 @@ public partial class MainWindow : Window
         _mediaService.Dispose();
         _notificationService.Dispose();
         Application.Current.Shutdown();
+    }
+
+    public void OpenSettingsFromTray()
+    {
+        RestoreFromTray();
+        Settings_Click(this, new RoutedEventArgs());
     }
 
     public void RestoreFromTray()

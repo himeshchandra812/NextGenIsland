@@ -24,13 +24,31 @@ Also:
 - **Themes:** Liquid Glass, Wallpaper (tinted from your desktop wallpaper), Black, Graphite, Acrylic.
 - **Key pop-up:** pressing the volume or brightness keys shows a slider on the island (can be turned off in Settings).
 - **Full-screen apps:** the island shrinks to a thin line while a full-screen app is in front.
-- **Settings:** show or hide tabs, start with Windows, weather city, shape and theme. Tray icon included.
+- **Settings:** show or hide tabs, start with Windows, weather city, shape, theme, hover and animation speed, pill content
+  (CPU and temperature, clock, or both), 12/24-hour clock, Fahrenheit, top gap and opacity. Tray icon included.
 
 ## Install
 
 Download `NextGenIsland-Setup.exe` or the `NextGenIsland-win-x64.zip` from the
 [Releases](../../releases) page. The Web tab needs the Microsoft WebView2 Runtime, which ships with
 Windows 11 and recent Windows 10.
+
+**Windows SmartScreen:** the app is not code-signed yet, so Windows may show "Windows protected your PC" the
+first time. Click **More info**, then **Run anyway**. You can check the download against the source in this repo.
+
+Launching the app a second time just brings the running island forward. Closing the island window keeps it
+running in the tray; use the tray menu (Open, Settings, Exit) to control it.
+
+## Troubleshooting
+
+- **Something looks wrong or the app closed:** open Settings, scroll to **About** and click **Open log**.
+  Include that file when you report an issue.
+- **Brightness slider does nothing:** brightness control works on laptop and built-in displays only; most external
+  monitors do not expose it to Windows.
+- **Notifications from other apps do not appear:** Windows does not give plain desktop apps access to other apps'
+  notifications. The Notifications tab shows NextGen Island's own alerts (reminders, focus timer, battery).
+- **The Web tab is blank:** install the [WebView2 Runtime](https://developer.microsoft.com/microsoft-edge/webview2/).
+- **Reset everything:** exit the app and delete `%LOCALAPPDATA%\NextGenIsland\settings.json`.
 
 ## Build from source
 
@@ -48,7 +66,7 @@ dotnet run -c Release
 .\publish.ps1 -Installer   # also builds NextGenIsland-Setup.exe (needs Inno Setup 6)
 ```
 
-Pushing a tag such as `v1.0.0` also builds and publishes the zip to GitHub Releases through
+Pushing a tag such as `v1.2.0` also builds and publishes the zip to GitHub Releases through
 `.github/workflows/windows-release.yml`.
 
 ## Data and privacy

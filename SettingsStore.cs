@@ -23,6 +23,8 @@ public sealed class AppSettings
     public bool ClickPinEnabled { get; set; } = true;
     public bool ClipboardPaused { get; set; } = false;
     public bool StartWithWindows { get; set; }
+    // Set once the first-run welcome banner has been shown.
+    public bool WelcomeShown { get; set; }
     // Collapses the island to a thin line at the top edge while a full-screen app is in front.
     public bool ShrinkInFullscreen { get; set; } = true;
     // Also shrink to the thin line when an ordinary maximized window is in front (needs ShrinkInFullscreen).
@@ -61,19 +63,37 @@ public static class SettingsStore
             if (File.Exists(FilePath))
                 return JsonSerializer.Deserialize<AppSettings>(File.ReadAllText(FilePath)) ?? new();
         }
-        catch { }
+        catch (Exception ex)
+        {
+            // A damaged settings file must never stop the app: keep a copy for inspection and start fresh.
+            AppLog.Write("Settings file unreadable, using defaults", ex);
+            try { File.Copy(FilePath, FilePath + ".bad", true); } catch { }
+        }
         return new();
     }
 
     public static void Save(AppSettings s)
     {
-        Directory.CreateDirectory(Dir);
-        File.WriteAllText(FilePath, JsonSerializer.Serialize(s, new JsonSerializerOptions { WriteIndented = true }));
-        using var key = Registry.CurrentUser.OpenSubKey(RunKey, true);
-        if (key == null) return;
-        if (s.StartWithWindows)
-            key.SetValue("NextGenIsland", "\"" + (Environment.ProcessPath ?? "") + "\"");
-        else
-            key.DeleteValue("NextGenIsland", false);
+        try
+        {
+            Directory.CreateDirectory(Dir);
+            // Write to a temp file and swap it in, so a crash or power cut cannot leave a half-written file.
+            string tmp = FilePath + ".tmp";
+            File.WriteAllText(tmp, JsonSerializer.Serialize(s, new JsonSerializerOptions { WriteIndented = true }));
+            if (File.Exists(FilePath)) File.Replace(tmp, FilePath, null);
+            else File.Move(tmp, FilePath);
+        }
+        catch (Exception ex) { AppLog.Write("Saving settings failed", ex); }
+
+        try
+        {
+            using var key = Registry.CurrentUser.OpenSubKey(RunKey, true);
+            if (key == null) return;
+            if (s.StartWithWindows)
+                key.SetValue("NextGenIsland", "\"" + (Environment.ProcessPath ?? "") + "\"");
+            else
+                key.DeleteValue("NextGenIsland", false);
+        }
+        catch (Exception ex) { AppLog.Write("Updating start-with-Windows failed", ex); }
     }
 }

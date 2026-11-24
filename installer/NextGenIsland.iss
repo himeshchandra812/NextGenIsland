@@ -1,6 +1,6 @@
 ; Inno Setup 6 script. Build with:  .\publish.ps1 -Installer
 #define AppName "NextGen Island"
-#define AppVersion "1.0.0"
+#define AppVersion "1.1.0"
 #define AppExe "NextGenIsland.exe"
 
 [Setup]
@@ -20,6 +20,8 @@ ArchitecturesInstallIn64BitMode=x64compatible
 PrivilegesRequired=lowest
 PrivilegesRequiredOverridesAllowed=dialog
 WizardStyle=modern
+SetupIconFile=..\NextGenIsland.ico
+AppCopyright=Copyright (c) 2026 Himesh Chandra
 UninstallDisplayIcon={app}\{#AppExe}
 CloseApplications=yes
 
