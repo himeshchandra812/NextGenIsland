@@ -25,12 +25,20 @@ public sealed class AppSettings
     public bool StartWithWindows { get; set; }
     // Set once the first-run welcome banner has been shown.
     public bool WelcomeShown { get; set; }
+    // Shows other apps' notifications on the island (reads the Windows notification history; off until the user enables it).
+    public bool ShowOtherAppNotifications { get; set; } = false;
     // Collapses the island to a thin line at the top edge while a full-screen app is in front.
     public bool ShrinkInFullscreen { get; set; } = true;
     // Also shrink to the thin line when an ordinary maximized window is in front (needs ShrinkInFullscreen).
     public bool ShrinkWhenMaximized { get; set; } = false;
     // Shows a slider on the island when the volume or brightness keys are pressed.
     public bool ShowKeyHud { get; set; } = true;
+    // Voice commands (Ctrl+Alt+Space or the mic button). The microphone is only opened when you start one.
+    public bool VoiceEnabled { get; set; } = true;
+    // Hold Ctrl+Alt+Space while speaking and release to send. More reliable in noisy places than waiting for silence.
+    public bool VoiceHoldToTalk { get; set; } = true;
+    // Speech model size: "tiny", "base" or "small". Bigger is more accurate in noise but slower and a larger download.
+    public string VoiceModel { get; set; } = "base";
     public bool NotificationsEnabled { get; set; } = true;
     public int NotificationDurationSeconds { get; set; } = 5;
     public bool QuietMode { get; set; }

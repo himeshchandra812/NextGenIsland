@@ -254,6 +254,34 @@
                                 </DockPanel>
                                 <Border Style="{StaticResource Divider}"/>
                                 <DockPanel Style="{StaticResource Row}">
+                                    <CheckBox x:Name="VoiceEnabled" DockPanel.Dock="Right" VerticalAlignment="Center"/>
+                                    <StackPanel VerticalAlignment="Center" Margin="0,0,14,0">
+                                        <TextBlock Text="Voice commands" Style="{StaticResource RowTitle}"/>
+                                        <TextBlock Text="Hold Ctrl+Alt+Space, say &quot;open Chrome and Calculator&quot; or &quot;set the volume to 30 percent&quot;, then let go. Recognised offline on this PC; the microphone is only on while it says Listening." Style="{StaticResource RowHint}"/>
+                                    </StackPanel>
+                                </DockPanel>
+                                <Border Style="{StaticResource Divider}"/>
+                                <DockPanel Style="{StaticResource Row}">
+                                    <CheckBox x:Name="VoiceHoldToTalk" DockPanel.Dock="Right" VerticalAlignment="Center"/>
+                                    <StackPanel VerticalAlignment="Center" Margin="0,0,14,0">
+                                        <TextBlock Text="Hold to talk" Style="{StaticResource RowTitle}"/>
+                                        <TextBlock Text="Records while you hold the shortcut and sends when you release it. Best in crowded or noisy places. Turn off to tap once and let it stop when you go quiet." Style="{StaticResource RowHint}"/>
+                                    </StackPanel>
+                                </DockPanel>
+                                <Border Style="{StaticResource Divider}"/>
+                                <DockPanel Style="{StaticResource Row}">
+                                    <ComboBox x:Name="VoiceModelCombo" Width="150" DockPanel.Dock="Right" VerticalAlignment="Center">
+                                        <ComboBoxItem Content="Fast (75 MB)" Tag="tiny"/>
+                                        <ComboBoxItem Content="Balanced (142 MB)" Tag="base"/>
+                                        <ComboBoxItem Content="Accurate (466 MB)" Tag="small"/>
+                                    </ComboBox>
+                                    <StackPanel VerticalAlignment="Center" Margin="0,0,14,0">
+                                        <TextBlock Text="Speech accuracy" Style="{StaticResource RowTitle}"/>
+                                        <TextBlock Text="Larger models understand you better in noise but take longer to download and to answer. Downloaded once, the first time you use it." Style="{StaticResource RowHint}"/>
+                                    </StackPanel>
+                                </DockPanel>
+                                <Border Style="{StaticResource Divider}"/>
+                                <DockPanel Style="{StaticResource Row}">
                                     <CheckBox x:Name="PauseClipboard" DockPanel.Dock="Right" VerticalAlignment="Center"/>
                                     <StackPanel VerticalAlignment="Center" Margin="0,0,14,0">
                                         <TextBlock Text="Pause clipboard history" Style="{StaticResource RowTitle}"/>
@@ -468,6 +496,14 @@
                                     <StackPanel VerticalAlignment="Center" Margin="0,0,14,0">
                                         <TextBlock Text="Smart notifications" Style="{StaticResource RowTitle}"/>
                                         <TextBlock Text="Show banners for system and incoming alerts" Style="{StaticResource RowHint}"/>
+                                    </StackPanel>
+                                </DockPanel>
+                                <Border Style="{StaticResource Divider}"/>
+                                <DockPanel Style="{StaticResource Row}">
+                                    <CheckBox x:Name="OtherAppNotifications" DockPanel.Dock="Right" VerticalAlignment="Center"/>
+                                    <StackPanel VerticalAlignment="Center" Margin="0,0,14,0">
+                                        <TextBlock Text="Show other apps' notifications" Style="{StaticResource RowTitle}"/>
+                                        <TextBlock Text="Shows toasts from apps like WhatsApp, Teams or Chrome on the island. Reads a copy of the Windows notification history on this PC (message previews included); nothing leaves your PC. Not an official Windows feature, so it may stop working after a Windows update." Style="{StaticResource RowHint}"/>
                                     </StackPanel>
                                 </DockPanel>
                                 <Border Style="{StaticResource Divider}"/>

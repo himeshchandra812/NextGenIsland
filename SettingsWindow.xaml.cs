@@ -24,10 +24,14 @@ public partial class SettingsWindow : Window
         ShrinkInFullscreen.IsChecked = s.ShrinkInFullscreen;
         ShrinkWhenMaximized.IsChecked = s.ShrinkWhenMaximized;
         ShowKeyHud.IsChecked = s.ShowKeyHud;
+        VoiceEnabled.IsChecked = s.VoiceEnabled;
+        VoiceHoldToTalk.IsChecked = s.VoiceHoldToTalk;
+        SelectTag(VoiceModelCombo, s.VoiceModel, "base");
 
         // Notifications
         EnableNotifications.IsChecked = s.NotificationsEnabled;
         QuietModeToggle.IsChecked = s.QuietMode;
+        OtherAppNotifications.IsChecked = s.ShowOtherAppNotifications;
 
         // Duration combo
         SelectDuration(s.NotificationDurationSeconds);
@@ -254,8 +258,12 @@ public partial class SettingsWindow : Window
         settings.ShrinkInFullscreen = ShrinkInFullscreen.IsChecked == true;
         settings.ShrinkWhenMaximized = ShrinkWhenMaximized.IsChecked == true;
         settings.ShowKeyHud = ShowKeyHud.IsChecked == true;
+        settings.VoiceEnabled = VoiceEnabled.IsChecked == true;
+        settings.VoiceHoldToTalk = VoiceHoldToTalk.IsChecked == true;
+        settings.VoiceModel = (VoiceModelCombo.SelectedItem as ComboBoxItem)?.Tag?.ToString() ?? "base";
         settings.NotificationsEnabled = EnableNotifications.IsChecked == true;
         settings.QuietMode = QuietModeToggle.IsChecked == true;
+        settings.ShowOtherAppNotifications = OtherAppNotifications.IsChecked == true;
         settings.NotificationDurationSeconds = GetSelectedDuration();
         settings.BatteryWarningsEnabled = BatteryWarnings.IsChecked == true;
         settings.NetworkMonitoringEnabled = NetworkMonitoring.IsChecked == true;

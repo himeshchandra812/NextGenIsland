@@ -7,7 +7,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <AssemblyName>NextGenIsland</AssemblyName>
     <RootNamespace>NextGenIsland</RootNamespace>
-    <Version>1.1.0</Version>
+    <Version>1.2.0</Version>
     <ApplicationIcon>NextGenIsland.ico</ApplicationIcon>
     <Product>NextGen Island</Product>
     <Company>NextGen Island</Company>
@@ -21,6 +21,9 @@
     <PackageReference Include="Hardcodet.NotifyIcon.Wpf" Version="2.0.1" />
     <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.2792.45" />
     <PackageReference Include="NAudio.Wasapi" Version="2.2.1" />
+    <PackageReference Include="NAudio.WinMM" Version="2.2.1" />
+    <PackageReference Include="Whisper.net" Version="1.9.1" />
+    <PackageReference Include="Whisper.net.Runtime" Version="1.9.1" />
     <PackageReference Include="System.Management" Version="8.0.0" />
     <PackageReference Include="System.Diagnostics.PerformanceCounter" Version="8.0.1" />
   </ItemGroup>

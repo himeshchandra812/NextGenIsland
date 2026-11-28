@@ -18,7 +18,7 @@ public partial class MainWindow
     // kind: "volume" or "brightness". value 0..1.
     private void ShowHud(string kind, double value, bool muted)
     {
-        if (!_ready || !_settings.ShowKeyHud || _expanded || DateTime.Now < _hudQuietUntil) return;
+        if (!_ready || !_settings.ShowKeyHud || _expanded || _voiceActive || DateTime.Now < _hudQuietUntil) return;
 
         value = Math.Clamp(value, 0.0, 1.0);
         if (kind == "volume")

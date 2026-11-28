@@ -30,6 +30,7 @@ public partial class MainWindow : Window
     private readonly BatteryMonitorService _batteryMonitor = new();
     private readonly NetworkMonitorService _networkMonitor;
     private readonly NotificationService _notificationService = new();
+    private WindowsNotificationReader? _wpnReader;
     private readonly DispatcherTimer _timer = new() { Interval = TimeSpan.FromSeconds(1) };
 
     private AppSettings _settings;
@@ -81,6 +82,8 @@ public partial class MainWindow : Window
         if (!NativeMethods.AddClipboardFormatListener(hwnd))
             Debug.WriteLine("Could not register clipboard listener: " + System.Runtime.InteropServices.Marshal.GetLastWin32Error());
 
+        InitVoice(hwnd);
+
         await _store.InitializeAsync();
 
         _tray = new NotifyIconHost(this);
@@ -92,6 +95,8 @@ public partial class MainWindow : Window
         _notificationService.HistoryChanged += OnNotificationHistoryChanged;
         _notificationService.WindowsListenerStatusChanged += OnWindowsListenerStatusChanged;
         await _notificationService.InitializeAsync();
+        _wpnReader = new WindowsNotificationReader(_notificationService);
+        ApplyOtherAppNotifications();
 
         UpdateQuietModeUI();
 
@@ -133,6 +138,7 @@ public partial class MainWindow : Window
     private IntPtr WndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
     {
         if (msg == WmClipboardUpdate) { _ = CaptureClipboardAsync(); handled = true; }
+        else if (msg == WmHotkey && wParam.ToInt32() == VoiceHotkeyId) { OnVoiceTrigger(true); handled = true; }
         return IntPtr.Zero;
     }
 
@@ -342,8 +348,19 @@ public partial class MainWindow : Window
     {
         Dispatcher.InvokeAsync(() =>
         {
-            PermissionWarningBanner.Visibility = isAllowed ? Visibility.Collapsed : Visibility.Visible;
+            _listenerAllowed = isAllowed;
+            ApplyOtherAppNotifications();
         });
+    }
+
+    private bool _listenerAllowed;
+
+    // Starts or stops the notification-history reader and shows the grey note only when other apps' notifications are unavailable.
+    private void ApplyOtherAppNotifications()
+    {
+        _wpnReader?.SetEnabled(_settings.ShowOtherAppNotifications);
+        PermissionWarningBanner.Visibility = (_listenerAllowed || _settings.ShowOtherAppNotifications)
+            ? Visibility.Collapsed : Visibility.Visible;
     }
 
     private void NotificationBanner_Click(object sender, MouseButtonEventArgs e)
@@ -599,7 +616,7 @@ public partial class MainWindow : Window
     {
         _isHovering = true;
         _collapseTimer?.Stop();
-        if (!_settings.HoverExpansionEnabled || _expanded) return;
+        if (!_settings.HoverExpansionEnabled || _expanded || _voiceActive) return;
 
         int delay = _settings.HoverOpenDelayMs;
         if (delay <= 0) { ExpandIsland(true); return; }
@@ -621,7 +638,7 @@ public partial class MainWindow : Window
     // With "open on hover" turned off, a click on the collapsed island opens it.
     private void IslandContainer_Click(object sender, MouseButtonEventArgs e)
     {
-        if (_settings.HoverExpansionEnabled || _expanded || _bannerActive || _hudActive) return;
+        if (_settings.HoverExpansionEnabled || _expanded || _bannerActive || _hudActive || _voiceActive) return;
         ExpandIsland(true);
         e.Handled = true;
     }
@@ -673,6 +690,7 @@ public partial class MainWindow : Window
             _hudActive = false;
             _hudTimer.Stop();
             Present(HudBanner, false);
+            Present(VoiceBanner, false);
             Present(NotificationBanner, false);
             Present(CompactHeader, false);
             SyncExpandedHeight();
@@ -699,6 +717,17 @@ public partial class MainWindow : Window
     private void ShowCollapsedState()
     {
         ApplyLineLook();
+        if (_voiceActive)
+        {
+            // Voice command: listening wave, "Working on it", then the result.
+            Present(CompactHeader, false);
+            Present(NotificationBanner, false);
+            Present(HudBanner, false);
+            Present(VoiceBanner, true, 110);
+            AnimateIsland(VoiceWidth, VoiceHeight, overshoot: true, amplitude: 0.10);
+            return;
+        }
+        Present(VoiceBanner, false);
         if (_hudActive)
         {
             // Volume / brightness pop-up (also shown over a full-screen app).
@@ -801,6 +830,7 @@ public partial class MainWindow : Window
             _notificationService.NotificationsEnabled = _settings.NotificationsEnabled;
             _notificationService.QuietMode = _settings.QuietMode;
             _notificationService.DisplayDurationSeconds = _settings.NotificationDurationSeconds;
+            ApplyOtherAppNotifications();
             _networkMonitor.SetSelectedInterface(_settings.SelectedNetworkInterface);
             UpdateCompactText();
             UpdateQuietModeUI();
@@ -844,6 +874,8 @@ public partial class MainWindow : Window
         _gpuMonitor.Dispose();
         _devices.Dispose();
         _mediaService.Dispose();
+        ShutdownVoice();
+        _wpnReader?.Dispose();
         _notificationService.Dispose();
         Application.Current.Shutdown();
     }
