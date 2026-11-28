@@ -569,11 +569,31 @@ public partial class MainWindow
                     "Due " + ClockText(r.Due.Value), isSystemAlert: false);
             }
         }
-        if (fired && ViewReminders.Visibility == Visibility.Visible) RenderReminders();
+        if (ViewReminders.Visibility != Visibility.Visible) return;
+        if (fired) RenderReminders();
+        else UpdateTimerLabels();
+    }
+
+    // Timer rows show a live "4:32 left"; refreshed every second while the Reminders tab is open.
+    private readonly Dictionary<string, TextBlock> _timerRowLabels = new();
+
+    private void UpdateTimerLabels()
+    {
+        if (_timerRowLabels.Count == 0) return;
+        foreach (var r in _reminders)
+            if (r.TimerSeconds > 0 && _timerRowLabels.TryGetValue(r.Id, out var label))
+                label.Text = DueLabel(r);
     }
 
     private string DueLabel(ReminderItem r)
     {
+        if (r.TimerSeconds > 0)
+        {
+            var now = DateTime.Now;
+            if (r.PausedSeconds.HasValue) return "Paused " + TimeLeftText(r.PausedSeconds.Value);
+            if (r.Due.HasValue && r.Due.Value > now) return TimeLeftText((r.Due.Value - now).TotalSeconds) + " left";
+            if (r.Due.HasValue) return "Finished";
+        }
         if (!r.Due.HasValue) return "";
         var d = r.Due.Value;
         string when = d.Date == DateTime.Today ? ClockText(d) : d.ToString("ddd ") + ClockText(d);
@@ -583,6 +603,7 @@ public partial class MainWindow
     private void RenderReminders()
     {
         ReminderItems.Children.Clear();
+        _timerRowLabels.Clear();
         const int maxShown = 2;
         var now = DateTime.Now;
         foreach (var r in _reminders.Take(maxShown))
@@ -606,6 +627,7 @@ public partial class MainWindow
             };
             DockPanel.SetDock(due, Dock.Right);
             dock.Children.Add(due);
+            if (r.TimerSeconds > 0) _timerRowLabels[r.Id] = due;
             dock.Children.Add(new TextBlock
             {
                 Text = r.Text,
@@ -810,4 +832,5 @@ public sealed class ReminderItem
     public DateTime? Due { get; set; }
     public string Repeat { get; set; } = "Once";   // Once, Daily or Weekly
     public int TimerSeconds { get; set; }          // > 0: a countdown timer of this length (ends at Due); 0: a normal reminder
+    public int? PausedSeconds { get; set; }        // a paused timer: seconds left (Due is empty while paused)
 }

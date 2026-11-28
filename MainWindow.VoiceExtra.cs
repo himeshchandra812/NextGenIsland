@@ -18,15 +18,55 @@ public partial class MainWindow
             }
             case VoiceActionKind.CancelTimer:
             {
-                var now = DateTime.Now;
-                var running = _reminders.Where(r => r.TimerSeconds > 0 && r.Due.HasValue && r.Due.Value > now)
-                                        .OrderBy(r => r.Due).ToList();
-                if (running.Count == 0) return ("No timer is running", false);
-                var cancelled = a.Value == 1 ? running : running.Take(1).ToList();
+                var live = LiveTimers();
+                if (live.Count == 0) return ("No timer is running", false);
+                var cancelled = a.Value == 1 ? live : live.Take(1).ToList();
                 foreach (var t in cancelled) { _reminders.Remove(t); _alerted.Remove(t.Id); }
                 SaveReminders();
                 RefreshAfterReminderChange();
                 return (cancelled.Count > 1 ? "Cancelled " + cancelled.Count + " timers" : "Timer cancelled", true);
+            }
+            case VoiceActionKind.TimerLeft:
+            {
+                var live = LiveTimers();
+                if (live.Count == 0) return ("No timer is running", false);
+                var t = live[0];
+                string left = TimeLeftText(TimerRemaining(t, DateTime.Now)) + " left";
+                return (t.PausedSeconds.HasValue ? left + " (paused)" : left, true);
+            }
+            case VoiceActionKind.PauseTimer:
+            {
+                var live = LiveTimers();
+                var t = live.FirstOrDefault(x => !x.PausedSeconds.HasValue);
+                if (t == null) return (live.Count > 0 ? "Timer is already paused" : "No timer is running", false);
+                t.PausedSeconds = Math.Max(1, (int)Math.Ceiling(TimerRemaining(t, DateTime.Now)));
+                t.Due = null;
+                _alerted.Remove(t.Id);
+                SaveReminders();
+                RefreshAfterReminderChange();
+                return ("Timer paused", true);
+            }
+            case VoiceActionKind.ResumeTimer:
+            {
+                var t = LiveTimers().FirstOrDefault(x => x.PausedSeconds.HasValue);
+                if (t == null) return ("No paused timer", false);
+                t.Due = DateTime.Now.AddSeconds(t.PausedSeconds!.Value);
+                t.PausedSeconds = null;
+                _alerted.Remove(t.Id);
+                SaveReminders();
+                RefreshAfterReminderChange();
+                return ("Timer resumed", true);
+            }
+            case VoiceActionKind.AddTimerTime:
+            {
+                var t = LiveTimers().FirstOrDefault();
+                if (t == null || a.Value <= 0) return ("No timer is running", false);
+                if (t.PausedSeconds.HasValue) t.PausedSeconds += a.Value;
+                else t.Due = t.Due!.Value.AddSeconds(a.Value);
+                t.TimerSeconds += a.Value;   // keeps the ring's full circle in step with the longer timer
+                SaveReminders();
+                RefreshAfterReminderChange();
+                return ("Added " + DurationText(a.Value) + " to the timer", true);
             }
             case VoiceActionKind.Remind:
             {

@@ -745,7 +745,7 @@ public partial class MainWindow : Window
             // Full-screen app in front but a timer is running: keep the timer pill visible (banners still wait in the history).
             Present(NotificationBanner, false);
             Present(CompactHeader, true, 140);
-            AnimateIsland(CompactWidth, CompactHeight);
+            AnimateIsland(_timerPillWidth, CompactHeight);
             return;
         }
 
@@ -768,7 +768,8 @@ public partial class MainWindow : Window
         {
             Present(NotificationBanner, false);
             Present(CompactHeader, true, 140);
-            AnimateIsland(CompactWidth, CompactHeight);
+            // While a timer runs the island shrinks to just the ring and the time left.
+            AnimateIsland(_timerOnPill ? _timerPillWidth : CompactWidth, CompactHeight);
         }
     }
 

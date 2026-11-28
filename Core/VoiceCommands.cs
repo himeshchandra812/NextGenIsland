@@ -5,7 +5,7 @@ namespace NextGenIsland.Core;
 public enum VoiceActionKind
 {
     Open, SetVolume, VolumeDelta, Mute, Unmute, SetBrightness, BrightnessDelta,
-    Remind, Timer, CancelTimer, FindFile, DarkMode, Wifi, Bluetooth, PowerMode,
+    Remind, Timer, CancelTimer, TimerLeft, PauseTimer, ResumeTimer, AddTimerTime, FindFile, DarkMode, Wifi, Bluetooth, PowerMode,
     MediaPlay, MediaPause, MediaNext, MediaPrevious,
     Unknown
 }
@@ -158,6 +158,22 @@ public static class VoiceCommands
         // (also "cancel my five minute timer": it must never be read as a new 5 minute timer)
         if (Regex.IsMatch(p, @"^(cancel|stop|clear|delete|remove|dismiss)\b") && Regex.IsMatch(p, @"\btimers?\b"))
             return One(VoiceActionKind.CancelTimer, Regex.IsMatch(p, @"\ball\b") ? 1 : 0);
+
+        // Timer control: "pause the timer", "resume the timer", "add 5 minutes to the timer", "how much time is left"
+        // ("add a 5 minute timer" has no "to ... timer", so it still starts a new timer)
+        if (!p.Contains("battery"))
+        {
+            if (Regex.IsMatch(p, @"^(pause|hold|freeze)\b.*\btimers?\b")) return One(VoiceActionKind.PauseTimer);
+            if (Regex.IsMatch(p, @"^(resume|continue|unpause)\b.*\btimers?\b")) return One(VoiceActionKind.ResumeTimer);
+            if (Regex.IsMatch(p, @"^(extend|increase)\b.*\btimers?\b")
+                || Regex.IsMatch(p, @"^add\b.*\bto\s+(?:(?:the|my|this|that|current|running)\s+)*timers?\b"))
+            {
+                if (TryDuration(NumberWordsToDigits(p), out int extra, out _)) return One(VoiceActionKind.AddTimerTime, extra);
+            }
+            if (Regex.IsMatch(p, @"\b(how much time|how long|time)\b.*\b(left|remaining)\b")
+                || Regex.IsMatch(p, @"\b(left|remaining)\b.*\btimers?\b"))
+                return One(VoiceActionKind.TimerLeft);
+        }
 
         // Timer: "set a timer for 5 minutes", "5 minute timer"
         if (Regex.IsMatch(p, @"\btimer\b"))

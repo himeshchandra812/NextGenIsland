@@ -394,7 +394,7 @@
                              IsHitTestVisible="False" Visibility="Collapsed"/>
 
                     <!-- Running timer: progress ring, time left, label (shown instead of the stats while a timer runs) -->
-                    <Grid x:Name="TimerChip" Visibility="Collapsed" IsHitTestVisible="False">
+                    <Grid x:Name="TimerChip" Visibility="Collapsed" IsHitTestVisible="False" HorizontalAlignment="Center">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="Auto"/>
@@ -407,8 +407,7 @@
                         </Grid>
                         <TextBlock x:Name="TimerTimeText" Grid.Column="1" Text="0:00" Foreground="White" FontSize="13" FontWeight="Bold"
                                    Margin="9,0,0,0" VerticalAlignment="Center"/>
-                        <TextBlock x:Name="TimerLabelText" Grid.Column="2" Text="Timer" Foreground="#8CFFFFFF" FontSize="11.5" FontWeight="Medium"
-                                   HorizontalAlignment="Right" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                        <TextBlock x:Name="TimerLabelText" Grid.Column="2" Visibility="Collapsed" Text="" FontSize="11.5"/>
                     </Grid>
                 </Grid>
 
