@@ -14,6 +14,7 @@ public partial class MainWindow
     private readonly DispatcherTimer _ringTimer = new() { Interval = TimeSpan.FromMilliseconds(250) };
     private bool _ringWired;
     private string? _ringShownId;   // the timer currently drawn on the pill
+    private bool _timerOnPill;      // a timer is showing on the pill (also keeps it visible over full-screen apps)
 
     // The timer to show: the one that ends first. A timer that just ended still counts for a few seconds (the "Done" flash).
     private ReminderItem? ActiveTimer(out int others)
@@ -38,11 +39,16 @@ public partial class MainWindow
         if (!_ringWired) { _ringTimer.Tick += (_, _) => RingTick(); _ringWired = true; }
 
         var t = ActiveTimer(out int others);
+        bool wasOnPill = _timerOnPill;
+        _timerOnPill = t != null;
+
         if (t == null)
         {
             _ringShownId = null;
             _ringTimer.Stop();
             if (TimerChip.Visibility != Visibility.Collapsed) TimerChip.Visibility = Visibility.Collapsed;
+            // Over a full-screen app the pill goes back to the thin line once the timer is gone.
+            if (wasOnPill && _fullscreen && !_expanded) ShowCollapsedState();
             return false;
         }
 
@@ -52,6 +58,8 @@ public partial class MainWindow
         CompactMetrics.Visibility = Visibility.Collapsed;
         TimerChip.Visibility = Visibility.Visible;
         TimerLabelText.Text = others > 0 ? "Timer +" + others : "Timer";
+        // Over a full-screen app the thin line grows into the timer pill when a timer starts.
+        if (!wasOnPill && _fullscreen && !_expanded) ShowCollapsedState();
         DrawTimer(t);
         if (!_ringTimer.IsEnabled) _ringTimer.Start();
         return true;

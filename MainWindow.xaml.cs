@@ -740,6 +740,15 @@ public partial class MainWindow : Window
         }
         Present(HudBanner, false);
 
+        if (_fullscreen && _timerOnPill)
+        {
+            // Full-screen app in front but a timer is running: keep the timer pill visible (banners still wait in the history).
+            Present(NotificationBanner, false);
+            Present(CompactHeader, true, 140);
+            AnimateIsland(CompactWidth, CompactHeight);
+            return;
+        }
+
         if (_fullscreen)
         {
             // Full-screen app in front: just a thin line (banners wait in the history).
