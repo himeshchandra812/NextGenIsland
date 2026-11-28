@@ -269,6 +269,7 @@ public partial class MainWindow : Window
     // Draws the collapsed pill according to Settings > Collapsed pill shows (a song title replaces it while playing).
     private void UpdateCompactText()
     {
+        if (UpdateTimerChip()) return;   // a running timer takes over the pill with its countdown ring
         bool media = _mediaLabel != null;
         CompactMetrics.Text = _mediaLabel ?? "";
         CompactMetrics.Visibility = media ? Visibility.Visible : Visibility.Collapsed;

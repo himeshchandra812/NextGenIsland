@@ -5,7 +5,7 @@ namespace NextGenIsland.Core;
 public enum VoiceActionKind
 {
     Open, SetVolume, VolumeDelta, Mute, Unmute, SetBrightness, BrightnessDelta,
-    Remind, Timer, FindFile, DarkMode, Wifi, Bluetooth, PowerMode,
+    Remind, Timer, CancelTimer, FindFile, DarkMode, Wifi, Bluetooth, PowerMode,
     MediaPlay, MediaPause, MediaNext, MediaPrevious,
     Unknown
 }
@@ -154,6 +154,11 @@ public static class VoiceCommands
 
     private static List<VoiceAction>? ParseExtra(string p)
     {
+        // Cancel a timer: "cancel the timer", "stop my timer", "cancel all timers" (Value 1 = all of them)
+        // (also "cancel my five minute timer": it must never be read as a new 5 minute timer)
+        if (Regex.IsMatch(p, @"^(cancel|stop|clear|delete|remove|dismiss)\b") && Regex.IsMatch(p, @"\btimers?\b"))
+            return One(VoiceActionKind.CancelTimer, Regex.IsMatch(p, @"\ball\b") ? 1 : 0);
+
         // Timer: "set a timer for 5 minutes", "5 minute timer"
         if (Regex.IsMatch(p, @"\btimer\b"))
         {

@@ -669,6 +669,7 @@ public partial class MainWindow
         var r = _reminders.FirstOrDefault(x => x.Id == id);
         if (r == null) return;
         r.Due = DateTime.Now.AddMinutes(10);
+        r.TimerSeconds = 0;   // a snoozed timer becomes a plain reminder, so it no longer gets the pill ring
         _alerted.Remove(r.Id);
         SaveReminders();
         RenderReminders();
@@ -808,4 +809,5 @@ public sealed class ReminderItem
     public string Text { get; set; } = "";
     public DateTime? Due { get; set; }
     public string Repeat { get; set; } = "Once";   // Once, Daily or Weekly
+    public int TimerSeconds { get; set; }          // > 0: a countdown timer of this length (ends at Due); 0: a normal reminder
 }

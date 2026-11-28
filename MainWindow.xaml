@@ -392,6 +392,24 @@
                     <Ellipse x:Name="CompactBellBadge" Width="6" Height="6" Fill="#FF453A"
                              HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,0,0,5"
                              IsHitTestVisible="False" Visibility="Collapsed"/>
+
+                    <!-- Running timer: progress ring, time left, label (shown instead of the stats while a timer runs) -->
+                    <Grid x:Name="TimerChip" Visibility="Collapsed" IsHitTestVisible="False">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid Width="22" Height="22" VerticalAlignment="Center">
+                            <Ellipse Stroke="#33FFFFFF" StrokeThickness="2.5" Margin="1.25"/>
+                            <Path x:Name="TimerRingArc" Stroke="White" StrokeThickness="2.5"
+                                  StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
+                        </Grid>
+                        <TextBlock x:Name="TimerTimeText" Grid.Column="1" Text="0:00" Foreground="White" FontSize="13" FontWeight="Bold"
+                                   Margin="9,0,0,0" VerticalAlignment="Center"/>
+                        <TextBlock x:Name="TimerLabelText" Grid.Column="2" Text="Timer" Foreground="#8CFFFFFF" FontSize="11.5" FontWeight="Medium"
+                                   HorizontalAlignment="Right" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                    </Grid>
                 </Grid>
 
                 <!-- Collapsed: volume / brightness pop-up -->

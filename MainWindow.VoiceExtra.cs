@@ -13,8 +13,20 @@ public partial class MainWindow
         {
             case VoiceActionKind.Timer:
             {
-                AddVoiceReminder("Timer finished (" + DurationText(a.Value) + ")", a.Value);
+                AddVoiceReminder("Timer finished (" + DurationText(a.Value) + ")", a.Value, isTimer: true);
                 return ("Timer set for " + DurationText(a.Value), true);
+            }
+            case VoiceActionKind.CancelTimer:
+            {
+                var now = DateTime.Now;
+                var running = _reminders.Where(r => r.TimerSeconds > 0 && r.Due.HasValue && r.Due.Value > now)
+                                        .OrderBy(r => r.Due).ToList();
+                if (running.Count == 0) return ("No timer is running", false);
+                var cancelled = a.Value == 1 ? running : running.Take(1).ToList();
+                foreach (var t in cancelled) { _reminders.Remove(t); _alerted.Remove(t.Id); }
+                SaveReminders();
+                RefreshAfterReminderChange();
+                return (cancelled.Count > 1 ? "Cancelled " + cancelled.Count + " timers" : "Timer cancelled", true);
             }
             case VoiceActionKind.Remind:
             {
@@ -86,16 +98,24 @@ public partial class MainWindow
     }
 
     // Reminders made by voice land in the Reminders tab and fire like any other reminder; seconds <= 0 means "no time".
-    private void AddVoiceReminder(string text, int secondsFromNow)
+    // isTimer marks a countdown timer: it also gets the progress ring on the pill (see MainWindow.TimerRing.cs).
+    private void AddVoiceReminder(string text, int secondsFromNow, bool isTimer = false)
     {
         _reminders.Insert(0, new ReminderItem
         {
             Text = text.Length > 120 ? text[..120] : text,
             Due = secondsFromNow > 0 ? DateTime.Now.AddSeconds(secondsFromNow) : null,
-            Repeat = "Once"
+            Repeat = "Once",
+            TimerSeconds = isTimer && secondsFromNow > 0 ? secondsFromNow : 0
         });
         SaveReminders();
+        RefreshAfterReminderChange();
+    }
+
+    private void RefreshAfterReminderChange()
+    {
         if (ViewReminders.Visibility == System.Windows.Visibility.Visible) RenderReminders();
+        UpdateCompactText();
     }
 
     private static string DurationText(int seconds)
